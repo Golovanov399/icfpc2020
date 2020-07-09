@@ -1,36 +1,36 @@
-#include <iostream>
-#include <regex>
-#include <string>
+#include <bits/stdc++.h>
 #include "httplib.h"
+
+using namespace std;
 
 int main(int argc, char* argv[])
 {
-	const std::string serverUrl(argv[1]);
-	const std::string playerKey(argv[2]);
+	const string serverUrl(argv[1]);
+	const string playerKey(argv[2]);
 
-	std::cout << "ServerUrl: " << serverUrl << "; PlayerKey: " << playerKey << std::endl;
+	cout << "ServerUrl: " << serverUrl << "; PlayerKey: " << playerKey << endl;
 	
-	const std::regex urlRegexp("http://(.+):(\\d+)");
-	std::smatch urlMatches;
-	if (!std::regex_search(serverUrl, urlMatches, urlRegexp) || urlMatches.size() != 3) {
-		std::cerr << "Bad server url" << std::endl;
+	const regex urlRegexp("http://(.+):(\\d+)");
+	smatch urlMatches;
+	if (!regex_search(serverUrl, urlMatches, urlRegexp) || urlMatches.size() != 3) {
+		cerr << "Bad server url" << endl;
 		return 1;
 	}
-	const std::string serverName = urlMatches[1];
-	const int serverPort = std::stoi(urlMatches[2]);
+	const string serverName = urlMatches[1];
+	const int serverPort = stoi(urlMatches[2]);
 	httplib::Client client(serverName, serverPort);
-	const std::shared_ptr<httplib::Response> serverResponse = 
+	const shared_ptr<httplib::Response> serverResponse = 
 		client.Get((serverUrl + "?playerKey=" + playerKey).c_str());
 
 	if (!serverResponse) {
-		std::cerr << "No response from server" << std::endl;
+		cerr << "No response from server" << endl;
 		return 2;
 	}
 	
 	if (serverResponse->status != 200) {
-		std::cerr << "Server returned error: " <<
+		cerr << "Server returned error: " <<
 			httplib::detail::status_message(serverResponse->status) << 
-			" (" << serverResponse->status << ")" << std::endl;
+			" (" << serverResponse->status << ")" << endl;
 		return 3;
 	}
 

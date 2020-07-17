@@ -11,7 +11,7 @@ with open("../../Golovanov399.github.io/icfpc2020/gen.py") as f:
 			need_to_write = True
 		elif "replace" in s:
 			t = s[s.find("imgs"):]
-			print("'%s': %s," % ("\\n".join(cur), t[:t.find(".png")]))
+			print("'%s': '%s'," % ("\\n".join(cur), t[5:t.find(".png")]))
 			cur = []
 			need_to_write = False
 		else:

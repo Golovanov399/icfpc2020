@@ -42,7 +42,9 @@ int main(int argc, char* argv[])
   };
 
   send(playerKey);
-  send("101010");
+  for (int len = 1; len < 1000; ++len) {
+    send(std::string('1', len));
+  }
 
   return 0;
 }

@@ -102,6 +102,8 @@ def repr(tkns, args):
 def parse(grid):
 	return repr(*build_tree(tokenize(grid)))
 
+import sys
+
 print(parse("""
 ##..###....###
 .#..#.#....###

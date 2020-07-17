@@ -18,7 +18,7 @@
 - error
 
 4:
-- error
+-  = 
 - 0 = 0
 - 1 = 1
 - 2 = 2
@@ -318,8 +318,8 @@
 - isemptylist(Cons(x0, x1)) = False
 
 30:
-- error
-- error
+- [, ]
+- [] = nil
 - [x0] = Cons(x0, nil)
 - [x0, x1] = Cons(x0, Cons(x1, nil))
 - [x0, x1, x2] = Cons(x0, Cons(x1, Cons(x2, nil)))
@@ -332,7 +332,7 @@
 
 32:
 - draw
-- error
+- draw([]) = ?
 - draw([point(1, 1)]) = ?
 - draw([point(1, 2)]) = ?
 - draw([point(2, 5)]) = ?

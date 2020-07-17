@@ -143,6 +143,8 @@ def decode_grid(g):
 		return '?'
 
 def build_tree(tokens):
+	if not tokens:
+		return [], []
 	arities = []
 	tkns = []
 	arity = 0
@@ -166,6 +168,8 @@ def build_tree(tokens):
 	return tkns, args
 
 def repr(tkns, args):
+	if not tkns:
+		return ""
 	sz = len(args)
 	reprs = ["" for i in range(sz)]
 	for i in range(sz - 1, -1, -1):

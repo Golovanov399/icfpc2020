@@ -68,6 +68,15 @@ tokname = {
 	'######\n#....#\n#....#\n#....#\n#....#\n######': 'draw',
 }
 
+tokname["######\n#.#.#.\n##.#.#\n#.#.#.\n##.#.#\n#.#.#."] = "checkerboard"
+tokname["#######\n#..#..#\n#..#..#\n#######\n#..#..#\n#..#..#\n#######\n"] = "multipledraw"
+tokname["####\n#.##\n##.#\n#.#."] = "send"
+tokname["#####\n#....\n#.###\n###..\n#.###"] = "if0"
+tokname["######\n#....#\n#.##.#\n#.##.#\n#....#\n######"] = "interact"
+tokname["#######\n#....#.\n#......\n#......\n#......\n#.#....\n#......"] = "statelessdraw"
+tokname["#######\n##.....\n##.....\n#......\n#......\n#..#...\n#......"] = "statefuldraw"
+# tokname["######\n######\n#####.\n####..\n###..#\n##...."] = "send"
+
 ntok = dict()
 for k, v in tokname.items():
 	if len(k) < 3:
@@ -131,6 +140,16 @@ def decode_var(g):
 	else:
 		return None
 
+def decode_bitstream(g):
+	if len(g) > 2:
+		return None
+	t = "bits("
+	for i in range(len(g[0])):
+		if len([j for j in range(len(g)) if g[j][i] == '#']) != 1:
+			return None
+		t += str(1 if g[0][i] == '#' else 0)
+	return t + ")"
+
 def decode_grid(g):
 	gs = g.split()
 	if g in tokname:
@@ -139,10 +158,14 @@ def decode_grid(g):
 		return decode_number(gs)
 	elif decode_var(gs):
 		return decode_var(gs)
+	elif decode_bitstream(gs):
+		return decode_bitstream(gs)
 	else:
 		return '?'
 
 def build_tree(tokens):
+	if not tokens:
+		return [], []
 	arities = []
 	tkns = []
 	arity = 0
@@ -166,6 +189,8 @@ def build_tree(tokens):
 	return tkns, args
 
 def repr(tkns, args):
+	if not tkns:
+		return ""
 	sz = len(args)
 	reprs = ["" for i in range(sz)]
 	for i in range(sz - 1, -1, -1):

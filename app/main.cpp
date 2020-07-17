@@ -13,27 +13,27 @@ int main(int argc, char* argv[])
 	const regex urlRegexp("http://(.+):(\\d+)");
 	smatch urlMatches;
 	if (!regex_search(serverUrl, urlMatches, urlRegexp) || urlMatches.size() != 3) {
-		cerr << "Bad server url" << endl;
+		cout << "Unexpected server response:\nBad server URL" << endl;
 		return 1;
 	}
 	const string serverName = urlMatches[1];
 	const int serverPort = stoi(urlMatches[2]);
 	httplib::Client client(serverName, serverPort);
 	const shared_ptr<httplib::Response> serverResponse = 
-		client.Get((serverUrl + "?playerKey=" + playerKey).c_str());
+		client.Post(serverUrl.c_str(), playerKey.c_str(), "text/plain");
 
 	if (!serverResponse) {
-		cerr << "No response from server" << endl;
-		return 2;
+		cout << "Unexpected server response:\nNo response from server" << endl;
+		return 1;
 	}
 	
 	if (serverResponse->status != 200) {
-		cerr << "Server returned error: " <<
-			httplib::detail::status_message(serverResponse->status) << 
-			" (" << serverResponse->status << ")" << endl;
-		return 3;
+		cout << "Unexpected server response:\nHTTP code: " << serverResponse->status
+		          << "\nResponse body: " << serverResponse->body << endl;
+		return 2;
 	}
 
+	cout << "Server response: " << serverResponse->body << endl;
 	return 0;
 }
 

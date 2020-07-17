@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     };
 
     send(playerKey);
-    send("42");
+    send("101010");
 
 	return 0;
 }

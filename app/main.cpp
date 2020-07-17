@@ -19,21 +19,31 @@ int main(int argc, char* argv[])
 	const string serverName = urlMatches[1];
 	const int serverPort = stoi(urlMatches[2]);
 	httplib::Client client(serverName, serverPort);
-	const shared_ptr<httplib::Response> serverResponse =
-		client.Post(serverUrl.c_str(), "100", "text/plain");
 
-	if (!serverResponse) {
-		cout << "Unexpected server response:\nNo response from server" << endl;
-		return 1;
-	}
+    auto send = [&](std::string message) {
+      cout << "send " << message << " to server" << endl;
 
-	if (serverResponse->status != 200) {
-		cout << "Unexpected server response:\nHTTP code: " << serverResponse->status
-		          << "\nResponse body: " << serverResponse->body << endl;
-		return 2;
-	}
+      const shared_ptr<httplib::Response> serverResponse =
+          client.Post(serverUrl.c_str(), message.c_str(), "text/plain");
 
-	cout << "Server response: " << serverResponse->body << endl;
+      if (!serverResponse) {
+          cout << "Unexpected server response:\nNo response from server" << endl;
+          return 1;
+      }
+
+      if (serverResponse->status != 200) {
+          cout << "Unexpected server response:\nHTTP code: " << serverResponse->status
+                    << "\nResponse body: " << serverResponse->body << endl;
+          return 2;
+      }
+
+      cout << "Server response: " << serverResponse->body << endl;
+      return 0;
+    };
+
+    send(playerKey);
+    send("42");
+
 	return 0;
 }
 

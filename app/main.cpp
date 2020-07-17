@@ -42,7 +42,11 @@ int main(int argc, char* argv[])
   };
 
   send(playerKey);
-  send("0111000101010");
+
+  for (int i = 0; i < 4; ++i) {
+    send("0111000101010");
+    sleep(10);
+  }
 
   return 0;
 }

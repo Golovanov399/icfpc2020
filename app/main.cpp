@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   send(playerKey);
 
   for (int i = 0; i < 4; ++i) {
-    send("0111000101010");
+    send("010");
     sleep(10);
   }
 

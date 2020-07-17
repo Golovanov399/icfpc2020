@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 	const int serverPort = stoi(urlMatches[2]);
 	httplib::Client client(serverName, serverPort);
 	const shared_ptr<httplib::Response> serverResponse = 
-		client.Post(serverUrl.c_str(), playerKey.c_str(), "text/plain");
+		client.Post(serverUrl.c_str(), "abc", "text/plain");
 
 	if (!serverResponse) {
 		cout << "Unexpected server response:\nNo response from server" << endl;

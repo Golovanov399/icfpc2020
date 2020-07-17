@@ -1,0 +1,9 @@
+[package]
+
+name = "wav-to-png"
+version = "1.0.0"
+authors = ["Ayaz"]
+
+[dependencies]
+hound = "3.4.0"
+png = "0.16"

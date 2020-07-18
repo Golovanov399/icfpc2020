@@ -16,8 +16,14 @@ struct Term {
 	int id;
 	string name; // if a terminal
 	Term *left, *right; // if an ap
+	bool is_non_recursive;
 
-	explicit Term(const string& _name): id(-1), name(_name), left(nullptr), right(nullptr) {}
+	explicit Term(const string& _name):
+			id(-1),
+			name(_name),
+			left(nullptr),
+			right(nullptr),
+			is_non_recursive(false) {}
 };
 
 vector<string> split(const string& s) {
@@ -133,15 +139,24 @@ Term* buildByRhs(const vector<string>& rule, int& ptr, const map<string, Term*>&
 }
 
 map<Term*, char> used;
+void mark_non_recursiveness(Term*& term) {
+	if (used[term]) {
+		return;
+	}
+	used[term] = 1;
+	if (!term->name.empty()) {
+		term->is_non_recursive = true;
+	} else {
+		mark_non_recursiveness(term->left);
+		mark_non_recursiveness(term->right);
+		term->is_non_recursive = term->left->is_non_recursive && term->right->is_non_recursive;
+	}
+}
 
 bool replaceAllRules(Term*& term) {
 	if (!term->name.empty()) {
 		return false;
 	}
-	if (used[term]) {
-		return false;
-	}
-	used[term] = 1;
 	bool res = false;
 	res |= replaceAllRules(term->left);
 	res |= replaceAllRules(term->right);
@@ -165,14 +180,19 @@ vector<Term*> term_by_id;
 map<string, Term*> term_dict;
 
 void expand_term_dicts(Term*& term) {
-	if (used[term]) {
-		return;
-	}
-	used[term] = 1;
 	if (term->name == "") {
 		expand_term_dicts(term->left);
 		expand_term_dicts(term->right);
 	} else if (term_dict.count(term->name)) {
+		term = term_dict[term->name];
+	}
+}
+
+void expand_nonrec_term_dicts(Term*& term) {
+	if (term->name == "") {
+		expand_nonrec_term_dicts(term->left);
+		expand_nonrec_term_dicts(term->right);
+	} else if (term_dict.count(term->name) && term_dict[term->name]->is_non_recursive) {
 		term = term_dict[term->name];
 	}
 }
@@ -199,6 +219,18 @@ int main() {
 		term_dict[lhs] = buildTerm(tokens);
 	}
 	fill_untyped_rules_tokens();
+
+	for (auto& p : term_dict) {
+		mark_non_recursiveness(p.second);
+	}
+
+	{
+		cerr << term_dict[":1096"] << "\n";
+		expand_nonrec_term_dicts(term_dict[":1096"]);
+		cerr << term_dict[":1096"] << "\n";
+		replaceAllRules(term_dict[":1096"]);
+		cerr << term_dict[":1096"] << "\n";
+	}
 
 	// int times_changed = 0;
 	// while (true) {

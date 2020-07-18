@@ -83,6 +83,9 @@ void write_svg(Term* term, const string& filename) {
 
 using LI = __int128_t;
 LI stoli(const string& s) {
+	if (s.empty()) {
+		throw invalid_argument("qwe");
+	}
 	int sign = 1;
 	if (s[0] == '-') {
 		sign = -1;
@@ -440,6 +443,28 @@ void expand_particular_node(Term*& term, const string& name) {
 	}
 }
 
+Term* copy(Term* term) {
+	if (!term) {
+		return nullptr;
+	}
+	auto t = new Term(term->name);
+	t->is_non_recursive = term->is_non_recursive;
+	t->left = copy(term->left);
+	t->right = copy(term->right);
+	return t;
+}
+
+void expand_particular_node_with_ap(Term*& term, const string& name) {
+	if (term->name == "") {
+		if (term->left->name == name) {
+			term->left = copy(term_dict[term->left->name]);
+			return;
+		}
+		expand_particular_node_with_ap(term->left, name);
+		expand_particular_node_with_ap(term->right, name);
+	}
+}
+
 void findReachableNodes(set<string>& S, Term* term) {
 	if (term->name.empty()) {
 		findReachableNodes(S, term->left);
@@ -524,31 +549,38 @@ int main() {
 		break;
 	}*/
 
-	/*for (auto [k, v] : term_dict) {
+	for (auto [k, v] : term_dict) {
 		if (isList(v)) {
 			continue;
 		}
-		auto tsz = tree_size(v);
 		auto cmd = k;
-		for (char c : string("xyz")) {
-			cmd = "ap " + cmd + " " + c;
-			auto t = buildTerm(split(cmd));
-			expand_particular_node(t, k);
-			while (replaceAllRules(t));
-			if (tree_size(t) <= tsz) {
-				tsz = tree_size(t);
-				if (tsz > 30) {
-					break;
-				}
-				generated_rules_tokens.emplace_back(split(cmd), getTokensList(t));
-				cerr << cmd << " = " << t << "\n";
-			} else {
-				break;
+		// for (char c : string("xyz")) {
+		// 	cmd = "ap " + cmd + " " + c;
+		// 	auto t = buildTerm(split(cmd));
+		// 	expand_particular_node(t, k);
+		// 	while (replaceAllRules(t));
+		// 	if (tree_size(t) <= tsz) {
+		// 		tsz = tree_size(t);
+		// 		if (tsz > 30) {
+		// 			break;
+		// 		}
+		// 		generated_rules_tokens.emplace_back(split(cmd), getTokensList(t));
+		// 		cerr << cmd << " = " << t << "\n";
+		// 	} else {
+		// 		break;
+		// 	}
+		// }
+		cmd = "ap " + cmd + " x";
+		auto t = buildTerm(split(cmd));
+		expand_particular_node(t, k);
+		if (replaceAllRules(t)) {
+			for (auto& p : term_dict) {
+				expand_particular_node_with_ap(p.second, k);
 			}
 		}
-	}*/
+	}
 
-	for (int it = 0; it < 1; ++it) {
+	for (int it = 0; it < 2; ++it) {
 		for (auto& [k, v] : term_dict) {
 			if (tree_size(v) < 100 && !contains_name(v, k)) {
 				for (auto& p : term_dict) {

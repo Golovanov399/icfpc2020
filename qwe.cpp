@@ -389,6 +389,15 @@ void expand_nonrec_term_dicts(Term*& term) {
 	}
 }
 
+void expand_particular_node(Term*& term, const string& name) {
+	if (term->name == "") {
+		expand_particular_node(term->left, name);
+		expand_particular_node(term->right, name);
+	} else if (term->name == name) {
+		term = term_dict[term->name];
+	}
+}
+
 void findReachableNodes(set<string>& S, Term* term) {
 	if (term->name.empty()) {
 		findReachableNodes(S, term->left);
@@ -398,6 +407,22 @@ void findReachableNodes(set<string>& S, Term* term) {
 			S.insert(term->name);
 			findReachableNodes(S, term_dict[term->name]);
 		}
+	}
+}
+
+bool contains_name(Term* term, const string& name) {
+	if (term->name.empty()) {
+		return contains_name(term->left, name) || contains_name(term->right, name);
+	} else {
+		return term->name == name;
+	}
+}
+
+int tree_size(Term* term) {
+	if (term) {
+		return 1 + tree_size(term->left) + tree_size(term->right);
+	} else {
+		return 0;
 	}
 }
 
@@ -419,19 +444,30 @@ int main() {
 	// 	while (replaceAllRules(term_dict["galaxy"]));
 	// }
 
-	for (int it = 0; it < 5; ++it) {
+	for (int it = 0; it < 10; ++it) {
+		for (auto& [k, v] : term_dict) {
+			if (tree_size(v) < 100 && !contains_name(v, k)) {
+				for (auto& p : term_dict) {
+					expand_particular_node(p.second, k);
+				}
+				cerr << "bye " << k << "\n";
+			}
+		}
+
 		set<string> reachable;
 		findReachableNodes(reachable, term_dict["galaxy"]);
 		reachable.insert("galaxy");
 		vector<string> to_delete;
 		for (const auto& p : term_dict) {
 			if (!reachable.count(p.first)) {
+				cerr << p.first << " is unreachable\n";
 				to_delete.push_back(p.first);
 			}
 		}
 		for (auto s : to_delete) {
 			term_dict.erase(s);
 		}
+
 		used.clear();
 		for (auto& p : term_dict) {
 			mark_non_recursiveness(p.second);

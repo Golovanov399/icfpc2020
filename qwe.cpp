@@ -5,6 +5,7 @@
 #define make_unique(x) sort((x).begin(), (x).end()); (x).erase(unique((x).begin(), (x).end()), (x).end())
 
 using namespace std;
+#include "svg.h"
 
 inline int nxt() {
 	int x;
@@ -209,6 +210,48 @@ ostream& operator <<(ostream& ostr, const Term* term) {
 	}
 }
 
+void write_svg(Term* term, const string& filename) {
+	vector<pair<Term*, int>> stack_with_layers;
+	vector<vector<string>> names;
+	stack_with_layers.push_back({term, 0});
+	while (!stack_with_layers.empty()) {
+		auto [term, layer] = stack_with_layers.back();
+		stack_with_layers.pop_back();
+		if (layer >= (int)names.size()) {
+			names.emplace_back();
+		}
+		names[layer].push_back(term->name.empty() ? "ap" : term->name);
+		if (term->name.empty()) {
+			stack_with_layers.push_back({term->right, layer + 1});
+			stack_with_layers.push_back({term->left, layer + 1});
+		}
+	}
+	int n = names.size();
+	ld w = 50;
+	vector<int> cur(n);
+	stack_with_layers.push_back({term, 0});
+	vector<pt> pars = {{-1., -1.}};
+	SVG svg(filename);
+	while (!stack_with_layers.empty()) {
+		auto [term, layer] = stack_with_layers.back();
+		stack_with_layers.pop_back();
+		pt up = pars.back();
+		pars.pop_back();
+		pt center = {w * (cur[layer] + 0.5) / names[layer].size(), layer + 0.5};
+		svg.text({center.x - 0.1, center.y}, names[layer][cur[layer]]);
+		if (up.x > -0.5) {
+			svg.line(up, {center.x, center.y - 0.2});
+		}
+		if (term->name.empty()) {
+			stack_with_layers.push_back({term->right, layer + 1});
+			pars.push_back({w * (cur[layer] + 0.5) / names[layer].size(), center.y + 0.2});
+			stack_with_layers.push_back({term->left, layer + 1});
+			pars.push_back({w * (cur[layer] + 0.5) / names[layer].size(), center.y + 0.2});
+		}
+		++cur[layer];
+	}
+}
+
 int main() {
 	ifstream fin("galaxy.txt");
 	string line;
@@ -228,6 +271,7 @@ int main() {
 		cerr << term_dict[":1096"] << "\n";
 		expand_nonrec_term_dicts(term_dict[":1096"]);
 		cerr << term_dict[":1096"] << "\n";
+		write_svg(term_dict[":1096"], "out.svg");
 		replaceAllRules(term_dict[":1096"]);
 		cerr << term_dict[":1096"] << "\n";
 	}

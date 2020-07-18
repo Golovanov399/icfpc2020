@@ -89,7 +89,7 @@ LI stoli(const string& s) {
 	}
 	LI res = 0;
 	for (int i = (sign == -1); i < (int)s.length(); ++i) {
-		res = res * 10 + s[i];
+		res = res * 10 + (s[i] - '0');
 	}
 	return res * sign;
 }
@@ -104,6 +104,9 @@ string to_string(LI a) {
 	while (a) {
 		res += (char)('0' + a % 10);
 		a /= 10;
+	}
+	if (res.empty()) {
+		res = "0";
 	}
 	reverse(all(res));
 	if (sign < 0) {
@@ -231,8 +234,13 @@ Term* buildByRhs(const vector<string>& rule, int& ptr, const map<string, Term*>&
 		t->left = buildByRhs(rule, ptr, vars);
 		t->right = buildByRhs(rule, ptr, vars);
 		return t;
-	} else {
+	} else if (vars.count(rule[ptr])) {
 		auto t = vars.at(rule[ptr]);
+		++ptr;
+		return t;
+	} else {
+		auto t = new Term(rule[ptr]);
+		t->is_non_recursive = true;
 		++ptr;
 		return t;
 	}
@@ -284,9 +292,6 @@ bool replaceAllRules(Term*& term) {
 		return false;
 	}
 	bool res = false;
-	if (!check(term)) {
-		assert(false);
-	}
 	res |= replaceAllRules(term->left);
 	res |= replaceAllRules(term->right);
 	for (const auto& [lhs, rhs] : untyped_rules_tokens) {
@@ -322,15 +327,17 @@ bool replaceAllRules(Term*& term) {
 			storeRuleVars(rule, ptr, term, vars);
 			try {
 				if (keyterm == "neg") {
+					stoli(vars["x"]->name);
 					term = new Term(to_string(-stoli(vars["x"]->name)));
 				} else if (keyterm == "add") {
+					stoli(vars["x"]->name);
+					stoli(vars["y"]->name);
 					term = new Term(to_string(stoli(vars["x"]->name) + stoli(vars["y"]->name)));
 				} else if (keyterm == "mul") {
+					stoli(vars["x"]->name);
+					stoli(vars["y"]->name);
 					term = new Term(to_string(stoli(vars["x"]->name) * stoli(vars["y"]->name)));
 				} else {
-					assert(false);
-				}
-				if (!check(term)) {
 					assert(false);
 				}
 				term->is_non_recursive = true;
@@ -339,9 +346,6 @@ bool replaceAllRules(Term*& term) {
 				//
 			}
 		}
-	}
-	if (!check(term)) {
-		assert(false);
 	}
 
 	return res;
@@ -386,26 +390,36 @@ int main() {
 	// 	while (replaceAllRules(term_dict["galaxy"]));
 	// }
 
-	for (auto& p : term_dict) {
-		mark_non_recursiveness(p.second);
-	}
-	// for (const auto& p : term_dict) {
-	// 	cerr << p.first << ": " << !!p.second->is_non_recursive << "\n";
-	// }
-
-	for (auto term : topsort) {
-		// cerr << "reducing " << term << "...\n";
-		while (true) {
-			expand_nonrec_term_dicts(term);
-			bool changed = false;
-			while (replaceAllRules(term)) {
-				changed = true;
-			}
-			if (!changed) {
-				break;
+	while (true) {
+		bool global_changed = false;
+		used.clear();
+		for (auto& p : term_dict) {
+			mark_non_recursiveness(p.second);
+		}
+		for (auto term : topsort) {
+			while (true) {
+				expand_nonrec_term_dicts(term);
+				bool changed = false;
+				while (replaceAllRules(term)) {
+					changed = true;
+				}
+				global_changed |= changed;
+				if (!changed) {
+					break;
+				}
 			}
 		}
-		// cerr << "reduced: " << term << "\n";
+		for (auto [k, v] : term_dict) {
+			while (replaceAllRules(v)) {
+				global_changed = true;
+			}
+		}
+		if (!global_changed) {
+			for (auto [k, v] : term_dict) {
+				cout << k << " = " << v << "\n";
+			}
+			break;
+		}
 	}
 
 	/*{

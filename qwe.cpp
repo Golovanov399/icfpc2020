@@ -167,13 +167,31 @@ const vector<string> typed_rules = {
 	"ap neg x",
 	"ap ap add x y",
 	"ap ap mul x y",
+	"ap ap div x y",
 	"ap isnil x",
 	"ap ap eq x y",
 	"ap ap lt x y",
 };
 
+const vector<string> pregenerated_rules = {
+	"ap :1117 x = ap ap ap ap eq 0 x 1 0",
+	"ap :1118 x = ap ap ap ap lt x 2 0 1",
+	"ap :1119 x = ap ap s ap ap c ap lt x 0 ap ap b ap add 1 ap ap s ap ap b :1119 ap div x i",
+	"ap ap :1119 x y = ap ap ap ap lt x y 0 1",
+	"ap :1128 x = ap ap ap isnil x 0 1",
+	"ap :1131 x = ap ap s ap isnil x ap ap b x ap ap b ap c ap ap b b cons ap c :1131",
+	"ap ap :1131 x y = ap ap ap isnil x y ap x ap ap c ap ap b b cons ap ap c :1131 y",
+	"ap :1141 x = ap ap b x ap ap s ap ap b c ap ap b ap b b ap eq 0 ap ap b ap c :1141 ap add -1",
+	"ap ap :1141 x y = ap x ap ap c ap ap b b ap ap eq 0 y ap ap c :1141 ap ap add -1 y",
+	"ap :1207 x = ap ap ap ap eq 0 x nil ap ap cons ap ap add x 0 ap :1207 ap ap div x 2",
+	"ap ap :1207 x y = ap ap ap ap ap eq 0 x nil ap ap cons ap ap add x 0 nil y",
+	"ap :1418 x = ap ap ap isnil x nil ap ap ap ap :1202 0 0 1 -1",
+	"ap :1453 x = ap ap ap isnil x 0 ap x ap ap c ap ap b b add ap ap b ap mul 7 :1453",
+};
+
 vector<pair<vector<string>, vector<string>>> untyped_rules_tokens;
 vector<vector<string>> typed_rules_tokens;
+vector<pair<vector<string>, vector<string>>> generated_rules_tokens;
 void fill_rules_tokens() {
 	for (auto s : untyped_rules) {
 		auto tkns = split(s);
@@ -185,6 +203,19 @@ void fill_rules_tokens() {
 				fst = false;
 			} else {
 				(fst ? untyped_rules_tokens.back().first : untyped_rules_tokens.back().second).push_back(t);
+			}
+		}
+	}
+	for (auto s : pregenerated_rules) {
+		auto tkns = split(s);
+		generated_rules_tokens.emplace_back();
+		bool fst = true;
+		for (auto t : tkns) {
+			if (t == "=") {
+				assert(fst);
+				fst = false;
+			} else {
+				(fst ? generated_rules_tokens.back().first : generated_rules_tokens.back().second).push_back(t);
 			}
 		}
 	}
@@ -300,22 +331,24 @@ bool replaceAllRules(Term*& term) {
 	bool res = false;
 	res |= replaceAllRules(term->left);
 	res |= replaceAllRules(term->right);
-	for (const auto& [lhs, rhs] : untyped_rules_tokens) {
-		int ptr = 0;
-		string keyterm = "";
-		for (auto s : lhs) {
-			if (s != "ap") {
-				keyterm = s;
-				break;
+	for (const auto& tokenset : {untyped_rules_tokens, generated_rules_tokens}) {
+		for (const auto& [lhs, rhs] : tokenset) {
+			int ptr = 0;
+			string keyterm = "";
+			for (auto s : lhs) {
+				if (s != "ap") {
+					keyterm = s;
+					break;
+				}
 			}
-		}
-		if (doesRuleFit(lhs, keyterm, ptr, term)) {
-			map<string, Term*> vars;
-			ptr = 0;
-			storeRuleVars(lhs, ptr, term, vars);
-			ptr = 0;
-			term = buildByRhs(rhs, ptr, vars);
-			res = true;
+			if (doesRuleFit(lhs, keyterm, ptr, term)) {
+				map<string, Term*> vars;
+				ptr = 0;
+				storeRuleVars(lhs, ptr, term, vars);
+				ptr = 0;
+				term = buildByRhs(rhs, ptr, vars);
+				res = true;
+			}
 		}
 	}
 	for (const auto& rule : typed_rules_tokens) {
@@ -343,10 +376,14 @@ bool replaceAllRules(Term*& term) {
 					stoli(vars["x"]->name);
 					stoli(vars["y"]->name);
 					term = new Term(to_string(stoli(vars["x"]->name) * stoli(vars["y"]->name)));
+				} else if (keyterm == "div") {
+					stoli(vars["x"]->name);
+					stoli(vars["y"]->name);
+					term = new Term(to_string(stoli(vars["x"]->name) / stoli(vars["y"]->name)));
 				} else if (keyterm == "isnil") {
 					if (vars["x"]->name == "nil") {
 						term = new Term("t");
-					} else if (vars["x"]->name.empty() && vars["x"]->left->name == "cons") {
+					} else if (vars["x"]->name.empty() && vars["x"]->left->name.empty() && vars["x"]->left->left->name == "cons") {
 						term = new Term("f");
 					} else {
 						throw invalid_argument("qwe");
@@ -431,6 +468,29 @@ int tree_size(Term* term) {
 	}
 }
 
+bool isList(Term* term) {
+	if (term->name == "nil") {
+		return true;
+	} else {
+		return term->name == "" && term->left->name == "" && term->left->left->name == "cons" && isList(term->right);
+	}
+}
+
+vector<string> getTokensList(Term* term) {
+	vector<string> res;
+	function<void(Term*)> rec = [&](Term* term) {
+		if (term->name.empty()) {
+			res.push_back("ap");
+			rec(term->left);
+			rec(term->right);
+		} else {
+			res.push_back(term->name);
+		}
+	};
+	rec(term);
+	return res;
+}
+
 int main() {
 	ifstream fin("galaxy.txt");
 	string line;
@@ -454,17 +514,41 @@ int main() {
 		mark_non_recursiveness(p.second);
 	}
 
-	// auto cmd = buildTerm(split("ap :1117 x"));
-	// while (true) {
-	// 	cerr << cmd << "\n";
-	// 	expand_term_dicts(cmd);
-	// 	while (replaceAllRules(cmd)) {
-	// 		cerr << cmd << "\n";
-	// 	}
-	// 	break;
-	// }
+	/*auto cmd = buildTerm(split("ap :1141 x"));
+	while (true) {
+		cerr << cmd << "\n";
+		expand_term_dicts(cmd);
+		while (replaceAllRules(cmd)) {
+			cerr << cmd << "\n";
+		}
+		break;
+	}*/
 
-	for (int it = 0; it < 10; ++it) {
+	/*for (auto [k, v] : term_dict) {
+		if (isList(v)) {
+			continue;
+		}
+		auto tsz = tree_size(v);
+		auto cmd = k;
+		for (char c : string("xyz")) {
+			cmd = "ap " + cmd + " " + c;
+			auto t = buildTerm(split(cmd));
+			expand_particular_node(t, k);
+			while (replaceAllRules(t));
+			if (tree_size(t) <= tsz) {
+				tsz = tree_size(t);
+				if (tsz > 30) {
+					break;
+				}
+				generated_rules_tokens.emplace_back(split(cmd), getTokensList(t));
+				cerr << cmd << " = " << t << "\n";
+			} else {
+				break;
+			}
+		}
+	}*/
+
+	for (int it = 0; it < 1; ++it) {
 		for (auto& [k, v] : term_dict) {
 			if (tree_size(v) < 100 && !contains_name(v, k)) {
 				for (auto& p : term_dict) {

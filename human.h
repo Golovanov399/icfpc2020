@@ -79,6 +79,54 @@ Data* term2data(Term* term) {
 	}
 }
 
+Term* data2term(Data* data) {
+	if (data->type == Num) {
+		return new Term(to_string(data->val));
+	} else if (!data->head) {
+		return new Term("nil");
+	} else {
+		return new Term(new Term(new Term("cons"), data2term(data->head)), data2term(data->tail));
+	}
+}
+
+void demodulate_token(vector<string>& tkns, const string& s, int& i) {
+	if (s.substr(i, 2) == "00") {
+		tkns.push_back("nil");
+		i += 2;
+	} else if (s.substr(i, 2) == "11") {
+		tkns.push_back("ap");
+		tkns.push_back("ap");
+		tkns.push_back("cons");
+		i += 2;
+	} else {
+		int sign = (s.substr(i, 2) == "01") ? 1 : -1;
+		i += 2;
+		int sz = 0;
+		while (s[i] == '1') {
+			++i;
+			++sz;
+		}
+		++i;
+		LI x = 0;
+		for (int j = 0; j < 4 * sz; ++j) {
+			x = x * 2 + (s[i++] - '0');
+		}
+		tkns.push_back(to_string(x * sign));
+	}
+}
+
+vector<string> demodulate_to_tokens(const string& s) {
+	vector<string> res;
+	for (int i = 0; i < (int)s.length();) {
+		demodulate_token(res, s, i);
+	}
+	return res;
+}
+
+Term* demodulate(const string& s) {
+	return buildTerm(demodulate_to_tokens(s));
+}
+
 ostream& operator <<(ostream& ostr, Data* data) {
 	if (data->type == Num) {
 		return ostr << to_string(data->val);

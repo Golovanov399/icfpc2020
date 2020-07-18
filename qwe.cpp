@@ -165,6 +165,8 @@ const vector<string> typed_rules = {
 	"ap ap add x y",
 	"ap ap mul x y",
 	"ap isnil x",
+	"ap ap eq x y",
+	"ap ap lt x y",
 };
 
 vector<pair<vector<string>, vector<string>>> untyped_rules_tokens;
@@ -344,6 +346,14 @@ bool replaceAllRules(Term*& term) {
 					} else {
 						throw invalid_argument("qwe");
 					}
+				} else if (keyterm == "eq") {
+					auto xli = stoli(vars["x"]->name);
+					auto yli = stoli(vars["y"]->name);
+					term = new Term(xli == yli ? "t" : "f");
+				} else if (keyterm == "lt") {
+					auto xli = stoli(vars["x"]->name);
+					auto yli = stoli(vars["y"]->name);
+					term = new Term(xli < yli ? "t" : "f");
 				} else {
 					assert(false);
 				}
@@ -397,20 +407,19 @@ int main() {
 	// 	while (replaceAllRules(term_dict["galaxy"]));
 	// }
 
-	while (true) {
-		bool global_changed = false;
+	for (int it = 0; it < 5; ++it) {
 		used.clear();
 		for (auto& p : term_dict) {
 			mark_non_recursiveness(p.second);
 		}
-		for (auto term : topsort) {
+		// for (auto term : topsort) {
+		for (auto [_, term] : term_dict) {
 			while (true) {
 				expand_nonrec_term_dicts(term);
 				bool changed = false;
 				while (replaceAllRules(term)) {
 					changed = true;
 				}
-				global_changed |= changed;
 				if (!changed) {
 					break;
 				}
@@ -418,15 +427,11 @@ int main() {
 		}
 		for (auto [k, v] : term_dict) {
 			while (replaceAllRules(v)) {
-				global_changed = true;
 			}
 		}
-		if (1 || !global_changed) {
-			for (auto [k, v] : term_dict) {
-				cout << k << " = " << v << "\n";
-			}
-			break;
-		}
+	}
+	for (auto [k, v] : term_dict) {
+		cout << k << " = " << v << "\n";
 	}
 
 	/*{

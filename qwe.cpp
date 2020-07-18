@@ -169,6 +169,8 @@ const vector<string> untyped_rules = {
 
 const vector<string> typed_rules = {
 	"ap neg x",
+	"ap inc x",
+	"ap dec x",
 	"ap ap add x y",
 	"ap ap mul x y",
 	"ap ap div x y",
@@ -200,7 +202,9 @@ const vector<string> pregenerated_rules = {
 };
 
 const map<string, string> renames = {
-	// {":1141", "take"},
+	{":1141", ":take"},	// :take list idx = list[idx]
+	{":1128", ":length"},	// :length list = |list|
+	{":1126", ":map"},	// :map list f = [f(x) for x in list]
 };
 
 vector<pair<vector<string>, vector<string>>> untyped_rules_tokens;
@@ -382,6 +386,12 @@ bool replaceAllRules(Term*& term) {
 				if (keyterm == "neg") {
 					stoli(vars["x"]->name);
 					term = new Term(to_string(-stoli(vars["x"]->name)));
+				} else if (keyterm == "inc") {
+					stoli(vars["x"]->name);
+					term = new Term(to_string(stoli(vars["x"]->name) + 1));
+				} else if (keyterm == "dec") {
+					stoli(vars["x"]->name);
+					term = new Term(to_string(stoli(vars["x"]->name) - 1));
 				} else if (keyterm == "add") {
 					stoli(vars["x"]->name);
 					stoli(vars["y"]->name);
@@ -458,10 +468,10 @@ bool expand_left(Term*& term) {
 	if (term->name == "") {
 		if (!expand_left(term->left)) {
 		  return expand_left(term->right);
-    } else return true;
+	} else return true;
 	} else if (term_dict.count(term->name)) {
 		term = copy(term_dict[term->name]);
-    return true;
+	return true;
 	}
   return false;
 }
@@ -587,18 +597,29 @@ int main() {
 	}
 
 	auto cmd = buildTerm(split("ap ap galaxy nil ap ap cons 1 1"));
-	// auto cmd = buildTerm(split("ap ap :1141 ap ap cons 1 ap ap cons 2 nil 3"));
+	// auto cmd = buildTerm(split("ap ap :1126 ap ap cons 0 ap ap cons 123 nil inc"));
 	while (true) {
+		// cerr << cmd << "\n";
+		// for (int i = 0; i < 5; ++i) {
+		// 	expand_term_dicts(cmd);
+		// 	if (!replaceAllRules(cmd)) {
+		// 		break;
+		// 	} else {
+		// 		while (replaceAllRules(cmd));
+		// 		cerr << cmd << "\n";
+		// 		write_svg(cmd, "out.svg");
+		// 	}
+		// }
 		cerr << cmd << "\n";
 		expand_term_dicts(cmd);
 		while (replaceAllRules(cmd)) {
 			cerr << cmd << "\n";
 		}
-    for (int i = 0; i < 100000; ++i) {
-		  if (!expand_left(cmd)) break;
-		  while (replaceAllRules(cmd)) {}
-		  cerr << cmd << "\n";
-    }
+		for (int i = 0; i < 100000; ++i) {
+			if (!expand_left(cmd)) break;
+			while (replaceAllRules(cmd)) {}
+			cerr << cmd << "\n";
+		}
 		break;
 	}
 
@@ -634,7 +655,7 @@ int main() {
 		}
 	}*/
 
-/*	for (int it = 0; it < 5; ++it) {
+	/*for (int it = 0; it < 5; ++it) {
 		for (auto& [k, v] : term_dict) {
 			if (tree_size(v) < 100 && !contains_name(v, k)) {
 				for (auto& p : term_dict) {

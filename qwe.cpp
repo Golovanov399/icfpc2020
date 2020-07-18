@@ -389,6 +389,18 @@ void expand_nonrec_term_dicts(Term*& term) {
 	}
 }
 
+void findReachableNodes(set<string>& S, Term* term) {
+	if (term->name.empty()) {
+		findReachableNodes(S, term->left);
+		findReachableNodes(S, term->right);
+	} else if (term->name[0] == ':') {
+		if (!S.count(term->name)) {
+			S.insert(term->name);
+			findReachableNodes(S, term_dict[term->name]);
+		}
+	}
+}
+
 int main() {
 	ifstream fin("galaxy.txt");
 	string line;
@@ -408,6 +420,18 @@ int main() {
 	// }
 
 	for (int it = 0; it < 5; ++it) {
+		set<string> reachable;
+		findReachableNodes(reachable, term_dict["galaxy"]);
+		reachable.insert("galaxy");
+		vector<string> to_delete;
+		for (const auto& p : term_dict) {
+			if (!reachable.count(p.first)) {
+				to_delete.push_back(p.first);
+			}
+		}
+		for (auto s : to_delete) {
+			term_dict.erase(s);
+		}
 		used.clear();
 		for (auto& p : term_dict) {
 			mark_non_recursiveness(p.second);
@@ -425,9 +449,8 @@ int main() {
 				}
 			}
 		}
-		for (auto [k, v] : term_dict) {
-			while (replaceAllRules(v)) {
-			}
+		for (auto& [k, v] : term_dict) {
+			while (replaceAllRules(v));
 		}
 	}
 	for (auto [k, v] : term_dict) {
@@ -435,13 +458,13 @@ int main() {
 	}
 
 	/*{
-		cerr << term_dict[":1202"] << "\n";
-		expand_nonrec_term_dicts(term_dict[":1202"]);
-		cerr << term_dict[":1202"] << "\n";
-		while (replaceAllRules(term_dict[":1202"])) {
-			cerr << term_dict[":1202"] << "\n";
+		cerr << term_dict[":1434"] << "\n";
+		expand_nonrec_term_dicts(term_dict[":1434"]);
+		cerr << term_dict[":1434"] << "\n";
+		while (replaceAllRules(term_dict[":1434"])) {
+			cerr << term_dict[":1434"] << "\n";
 		}
-		write_svg(term_dict[":1202"], "out.svg");
+		write_svg(term_dict[":1434"], "out.svg");
 	}*/
 
 	// int times_changed = 0;

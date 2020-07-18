@@ -81,6 +81,37 @@ void write_svg(Term* term, const string& filename) {
 	}
 }
 
+using LI = __int128_t;
+LI stoli(const string& s) {
+	int sign = 1;
+	if (s[0] == '-') {
+		sign = -1;
+	}
+	LI res = 0;
+	for (int i = (sign == -1); i < (int)s.length(); ++i) {
+		res = res * 10 + s[i];
+	}
+	return res * sign;
+}
+
+string to_string(LI a) {
+	int sign = 1;
+	if (a < 0) {
+		sign = -1;
+		a *= -1;
+	}
+	string res = "";
+	while (a) {
+		res += (char)('0' + a % 10);
+		a /= 10;
+	}
+	reverse(all(res));
+	if (sign < 0) {
+		res = "-" + res;
+	}
+	return res;
+}
+
 vector<string> split(const string& s) {
 	vector<string> res = {""};
 	for (char c : s) {
@@ -154,7 +185,7 @@ void fill_rules_tokens() {
 	}
 }
 
-bool doesRuleFit(const vector<string>& rule, const string& keyterm, int& ptr, Term* term) {
+bool doesRuleFit(const vector<string>& rule, const string& keyterm, int& ptr, const Term* term) {
 	if (!term) {
 		return false;
 	}
@@ -207,28 +238,55 @@ Term* buildByRhs(const vector<string>& rule, int& ptr, const map<string, Term*>&
 	}
 }
 
+vector<Term*> topsort;
+map<string, Term*> term_dict;
+
+bool check(Term* term) {
+	if (term->name.empty()) {
+		if (!term->left) {
+			return false;
+		}
+		if (!term->right) {
+			return false;
+		}
+	}
+	return true;
+}
+
 map<Term*, char> used;
-void mark_non_recursiveness(Term*& term) {
+void mark_non_recursiveness(Term* term) {
 	if (used[term]) {
 		return;
 	}
 	used[term] = 1;
 	if (!term->name.empty()) {
-		term->is_non_recursive = true;
+		if (term_dict.count(term->name)) {
+			mark_non_recursiveness(term_dict[term->name]);
+			term->is_non_recursive = term_dict[term->name]->is_non_recursive;
+		} else {
+			term->is_non_recursive = true;
+		}
 	} else {
 		mark_non_recursiveness(term->left);
 		mark_non_recursiveness(term->right);
 		term->is_non_recursive = term->left->is_non_recursive && term->right->is_non_recursive;
 	}
+	if (term->is_non_recursive) {
+		topsort.push_back(term);
+	}
 }
 
-map<string, Term*> term_dict;
-
 bool replaceAllRules(Term*& term) {
+	if (!term) {
+		return false;
+	}
 	if (!term->name.empty()) {
 		return false;
 	}
 	bool res = false;
+	if (!check(term)) {
+		assert(false);
+	}
 	res |= replaceAllRules(term->left);
 	res |= replaceAllRules(term->right);
 	for (const auto& [lhs, rhs] : untyped_rules_tokens) {
@@ -264,12 +322,15 @@ bool replaceAllRules(Term*& term) {
 			storeRuleVars(rule, ptr, term, vars);
 			try {
 				if (keyterm == "neg") {
-					term = new Term(to_string(-stoi(vars["x"]->name)));
+					term = new Term(to_string(-stoli(vars["x"]->name)));
 				} else if (keyterm == "add") {
-					term = new Term(to_string(stoi(vars["x"]->name) + stoi(vars["y"]->name)));
+					term = new Term(to_string(stoli(vars["x"]->name) + stoli(vars["y"]->name)));
 				} else if (keyterm == "mul") {
-					term = new Term(to_string(stoi(vars["x"]->name) * stoi(vars["y"]->name)));
+					term = new Term(to_string(stoli(vars["x"]->name) * stoli(vars["y"]->name)));
 				} else {
+					assert(false);
+				}
+				if (!check(term)) {
 					assert(false);
 				}
 				term->is_non_recursive = true;
@@ -278,6 +339,9 @@ bool replaceAllRules(Term*& term) {
 				//
 			}
 		}
+	}
+	if (!check(term)) {
+		assert(false);
 	}
 
 	return res;
@@ -315,30 +379,59 @@ int main() {
 	}
 	fill_rules_tokens();
 
+	// for (int it = 0; it < 10; ++it) {
+	// 	cerr << term_dict["galaxy"] << "\n";
+	// 	write_svg(term_dict["galaxy"], "out.svg");
+	// 	expand_term_dicts(term_dict["galaxy"]);
+	// 	while (replaceAllRules(term_dict["galaxy"]));
+	// }
+
 	for (auto& p : term_dict) {
 		mark_non_recursiveness(p.second);
 	}
+	// for (const auto& p : term_dict) {
+	// 	cerr << p.first << ": " << !!p.second->is_non_recursive << "\n";
+	// }
 
-	{
-		cerr << term_dict[":1096"] << "\n";
-		expand_nonrec_term_dicts(term_dict[":1096"]);
-		cerr << term_dict[":1096"] << "\n";
-		while (replaceAllRules(term_dict[":1096"])) {
-			cerr << term_dict[":1096"] << "\n";
+	for (auto term : topsort) {
+		// cerr << "reducing " << term << "...\n";
+		while (true) {
+			expand_nonrec_term_dicts(term);
+			bool changed = false;
+			while (replaceAllRules(term)) {
+				changed = true;
+			}
+			if (!changed) {
+				break;
+			}
 		}
-		write_svg(term_dict[":1096"], "out.svg");
+		// cerr << "reduced: " << term << "\n";
 	}
+
+	/*{
+		cerr << term_dict[":1202"] << "\n";
+		expand_nonrec_term_dicts(term_dict[":1202"]);
+		cerr << term_dict[":1202"] << "\n";
+		while (replaceAllRules(term_dict[":1202"])) {
+			cerr << term_dict[":1202"] << "\n";
+		}
+		write_svg(term_dict[":1202"], "out.svg");
+	}*/
 
 	// int times_changed = 0;
 	// while (true) {
 	// 	used.clear();
 	// 	for (auto& p : term_dict) {
-	// 		expand_term_dicts(p.second);
+	// 		mark_non_recursiveness(p.second);
 	// 	}
 	// 	bool changed = false;
-	// 	used.clear();
 	// 	for (auto& p : term_dict) {
-	// 		changed |= replaceAllRules(p.second);
+	// 		if (p.second->is_non_recursive) {
+	// 			expand_nonrec_term_dicts(p.second);
+	// 			while (replaceAllRules(p.second)) {
+	// 				changed = true;
+	// 			}
+	// 		}
 	// 	}
 	// 	if (!changed) {
 	// 		break;

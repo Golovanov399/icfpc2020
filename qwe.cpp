@@ -596,7 +596,7 @@ int main() {
 		mark_non_recursiveness(p.second);
 	}
 
-	auto cmd = buildTerm(split("ap ap galaxy nil ap ap cons 1 70101"));
+	auto cmd = buildTerm(split("ap ap galaxy ap ap cons 1 ap ap cons ap ap cons 1 nil ap ap cons 0 ap ap cons nil nil ap ap cons 14 88"));
 	// auto cmd = buildTerm(split("ap ap :1126 ap ap cons 0 ap ap cons 123 nil inc"));
 	while (true) {
 		// cerr << cmd << "\n";

@@ -61,6 +61,17 @@ def modulate(a):
 		res += modulate_int(int(a))
 	return res
 
+def apapcons(a):
+	if isinstance(a, list):
+		if not a:
+			return ["nil"]
+		return ["ap", "ap", "cons"] + apapcons(a[0]) + apapcons(a[1:])
+	elif isinstance(a, tuple):
+		assert len(a) == 2
+		return ["ap", "ap", "cons"] + apapcons(a[0]) + apapcons(a[1])
+	else:
+		return [str(a)]
+
 def repr(tokens):
 	a = tokens[:]
 	for i in range(len(a) - 1, -1, -1):
@@ -74,6 +85,8 @@ def repr(tokens):
 	return convert_or_leave_it(a)
 
 a = input().strip().split()
-print(*repr(a), sep='\n')
-print(modulate(repr(a)[1]))
-# print(modulate(a))
+print(repr(a))
+for v in repr(a)[2]:
+	print(*map(lambda x: "%s %s" % x, v))
+print(modulate(repr(a)[2][0]))
+print(*apapcons(repr(a)[1]))

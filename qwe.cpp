@@ -156,7 +156,7 @@ Term* buildTerm(const vector<string>& tokens) {
 
 const vector<string> untyped_rules = {
 	"ap ap t x y = x",
-	"ap ap f x y = y",
+	"ap f x = i",
 	"ap ap ap s x y z = ap ap x z ap y z",
 	"ap ap ap c x y z = ap ap x z y",
 	"ap ap ap b x y z = ap x ap y z",
@@ -174,22 +174,28 @@ const vector<string> typed_rules = {
 	"ap isnil x",
 	"ap ap eq x y",
 	"ap ap lt x y",
+	"ap c x",
+	"ap s x",
 };
 
 const vector<string> pregenerated_rules = {
-	"ap :1117 x = ap ap ap ap eq 0 x 1 0",
-	"ap :1118 x = ap ap ap ap lt x 2 0 1",
-	"ap :1119 x = ap ap s ap ap c ap lt x 0 ap ap b ap add 1 ap ap s ap ap b :1119 ap div x i",
-	"ap ap :1119 x y = ap ap ap ap lt x y 0 1",
-	"ap :1128 x = ap ap ap isnil x 0 1",
-	"ap :1131 x = ap ap s ap isnil x ap ap b x ap ap b ap c ap ap b b cons ap c :1131",
-	"ap ap :1131 x y = ap ap ap isnil x y ap x ap ap c ap ap b b cons ap ap c :1131 y",
-	"ap :1141 x = ap ap b x ap ap s ap ap b c ap ap b ap b b ap eq 0 ap ap b ap c :1141 ap add -1",
-	"ap ap :1141 x y = ap x ap ap c ap ap b b ap ap eq 0 y ap ap c :1141 ap ap add -1 y",
-	"ap :1207 x = ap ap ap ap eq 0 x nil ap ap cons ap ap add x 0 ap :1207 ap ap div x 2",
-	"ap ap :1207 x y = ap ap ap ap ap eq 0 x nil ap ap cons ap ap add x 0 nil y",
-	"ap :1418 x = ap ap ap isnil x nil ap ap ap ap :1202 0 0 1 -1",
-	"ap :1453 x = ap ap ap isnil x 0 ap x ap ap c ap ap b b add ap ap b ap mul 7 :1453",
+	"ap :1096 x = ap ap ap ap ap :1201 -16 -16 33 33 x",
+	"ap :1110 x = ap ap cons 1 ap ap cons x nil",
+	"ap ap :1110 x y = ap ap y 1 ap ap cons x nil",
+	"ap :1111 x = ap ap b ap cons 2 ap ap b ap cons x ap ap c cons nil",
+	"ap ap :1111 x y = ap ap cons 2 ap ap cons x ap ap cons y nil",
+	"ap ap ap :1111 x y z = ap ap z 2 ap ap cons x ap ap cons y nil",
+	"ap :1112 x = ap ap b ap cons 3 ap ap b ap cons x ap ap c cons nil",
+	"ap ap :1112 x y = ap ap cons 3 ap ap cons x ap ap cons y nil",
+	"ap ap ap :1112 x y z = ap ap z 3 ap ap cons x ap ap cons y nil",
+	"ap :1113 x = ap ap b ap cons 4 ap ap b ap cons x ap ap c cons nil",
+	"ap ap :1113 x y = ap ap cons 4 ap ap cons x ap ap cons y nil",
+	"ap ap ap :1113 x y z = ap ap z 4 ap ap cons x ap ap cons y nil",
+	"ap :1114 x = ap ap cons 5 ap ap cons x nil",
+	"ap ap :1114 x y = ap ap y 5 ap ap cons x nil",
+	"ap :1116 x = ap ap c ap isnil x ap x t",
+	"ap ap :1116 x y = ap ap ap isnil x y ap x t",
+	"ap :1117 x = ap ap ap ap eq 0 x 1 ap ap mul 2 ap :1117 ap ap add -1 x",
 };
 
 vector<pair<vector<string>, vector<string>>> untyped_rules_tokens;
@@ -399,6 +405,22 @@ bool replaceAllRules(Term*& term) {
 					auto xli = stoli(vars["x"]->name);
 					auto yli = stoli(vars["y"]->name);
 					term = new Term(xli < yli ? "t" : "f");
+				} else if (keyterm == "c") {
+					if (vars["x"]->name == "t") {
+						term = new Term("f");
+					} else if (vars["x"]->name == "f") {
+						term = new Term("t");
+					} else {
+						throw invalid_argument("qwe");
+					}
+				} else if (keyterm == "s") {
+					if (vars["x"]->name == "t") {
+						term = new Term("f");
+					} else if (vars["x"]->name == "f") {
+						term = new Term("i");
+					} else {
+						throw invalid_argument("qwe");
+					}
 				} else {
 					assert(false);
 				}
@@ -539,21 +561,22 @@ int main() {
 		mark_non_recursiveness(p.second);
 	}
 
-	/*auto cmd = buildTerm(split("ap :1141 x"));
-	while (true) {
-		cerr << cmd << "\n";
-		expand_term_dicts(cmd);
-		while (replaceAllRules(cmd)) {
-			cerr << cmd << "\n";
-		}
-		break;
-	}*/
+	// auto cmd = buildTerm(split("ap :1117 x"));
+	// while (true) {
+	// 	cerr << cmd << "\n";
+	// 	expand_term_dicts(cmd);
+	// 	while (replaceAllRules(cmd)) {
+	// 		cerr << cmd << "\n";
+	// 	}
+	// 	break;
+	// }
 
-	for (auto [k, v] : term_dict) {
+	/*for (auto [k, v] : term_dict) {
 		if (isList(v)) {
 			continue;
 		}
 		auto cmd = k;
+		// auto tsz = tree_size(v);
 		// for (char c : string("xyz")) {
 		// 	cmd = "ap " + cmd + " " + c;
 		// 	auto t = buildTerm(split(cmd));
@@ -578,9 +601,9 @@ int main() {
 				expand_particular_node_with_ap(p.second, k);
 			}
 		}
-	}
+	}*/
 
-	for (int it = 0; it < 2; ++it) {
+	for (int it = 0; it < 5; ++it) {
 		for (auto& [k, v] : term_dict) {
 			if (tree_size(v) < 100 && !contains_name(v, k)) {
 				for (auto& p : term_dict) {

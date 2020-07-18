@@ -164,6 +164,7 @@ const vector<string> typed_rules = {
 	"ap neg x",
 	"ap ap add x y",
 	"ap ap mul x y",
+	"ap isnil x",
 };
 
 vector<pair<vector<string>, vector<string>>> untyped_rules_tokens;
@@ -337,6 +338,12 @@ bool replaceAllRules(Term*& term) {
 					stoli(vars["x"]->name);
 					stoli(vars["y"]->name);
 					term = new Term(to_string(stoli(vars["x"]->name) * stoli(vars["y"]->name)));
+				} else if (keyterm == "isnil") {
+					if (vars["x"]->name == "nil") {
+						term = new Term("t");
+					} else {
+						throw invalid_argument("qwe");
+					}
 				} else {
 					assert(false);
 				}
@@ -414,7 +421,7 @@ int main() {
 				global_changed = true;
 			}
 		}
-		if (!global_changed) {
+		if (1 || !global_changed) {
 			for (auto [k, v] : term_dict) {
 				cout << k << " = " << v << "\n";
 			}

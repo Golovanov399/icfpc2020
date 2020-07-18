@@ -454,17 +454,17 @@ int main() {
 		mark_non_recursiveness(p.second);
 	}
 
-	auto cmd = buildTerm(split("ap :1117 x"));
-	while (true) {
-		cerr << cmd << "\n";
-		expand_term_dicts(cmd);
-		while (replaceAllRules(cmd)) {
-			cerr << cmd << "\n";
-		}
-		break;
-	}
+	// auto cmd = buildTerm(split("ap :1117 x"));
+	// while (true) {
+	// 	cerr << cmd << "\n";
+	// 	expand_term_dicts(cmd);
+	// 	while (replaceAllRules(cmd)) {
+	// 		cerr << cmd << "\n";
+	// 	}
+	// 	break;
+	// }
 
-	/*for (int it = 0; it < 10; ++it) {
+	for (int it = 0; it < 10; ++it) {
 		for (auto& [k, v] : term_dict) {
 			if (tree_size(v) < 100 && !contains_name(v, k)) {
 				for (auto& p : term_dict) {
@@ -511,7 +511,7 @@ int main() {
 	}
 	for (auto [k, v] : term_dict) {
 		cout << k << " = " << v << "\n";
-	}*/
+	}
 
 	/*{
 		cerr << term_dict[":1117"] << "\n";

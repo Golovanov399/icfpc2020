@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include "term.h"
 #include "int2str.h"
+#include "human.h"
 
 #define all(x) (x).begin(), (x).end()
 #define itn int
@@ -154,7 +155,7 @@ Term* eval(const string& s) {
 }
 
 int main() {
-	cerr << eval("ap ap galaxy ap ap cons 1 ap ap cons ap ap cons 1 nil ap ap cons 0 ap ap cons nil nil ap ap cons 14 88") << "\n";
+	cerr << term2data(eval("ap ap galaxy ap ap cons 1 ap ap cons ap ap cons 1 nil ap ap cons 0 ap ap cons nil nil ap ap cons 14 88"))->get(2) << "\n";
 
 	return 0;
 }

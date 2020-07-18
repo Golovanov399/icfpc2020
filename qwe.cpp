@@ -164,6 +164,7 @@ const vector<string> untyped_rules = {
 	"ap ap ap cons x y z = ap ap z x y",
 	"ap car z = ap z t",
 	"ap cdr z = ap z f",
+	"ap nil x = t",
 };
 
 const vector<string> typed_rules = {
@@ -196,6 +197,10 @@ const vector<string> pregenerated_rules = {
 	"ap :1116 x = ap ap c ap isnil x ap x t",
 	"ap ap :1116 x y = ap ap ap isnil x y ap x t",
 	"ap :1117 x = ap ap ap ap eq 0 x 1 ap ap mul 2 ap :1117 ap ap add -1 x",
+};
+
+const map<string, string> renames = {
+	// {":1141", "take"},
 };
 
 vector<pair<vector<string>, vector<string>>> untyped_rules_tokens;
@@ -545,6 +550,14 @@ int main() {
 		auto tokens = split(line);
 		auto lhs = tokens[0];
 		tokens.erase(tokens.begin(), tokens.begin() + 2);
+		if (renames.count(lhs)) {
+			lhs = renames.at(lhs);
+		}
+		for (auto& s : tokens) {
+			if (renames.count(s)) {
+				s = renames.at(s);
+			}
+		}
 		term_dict[lhs] = buildTerm(tokens);
 	}
 	fill_rules_tokens();
@@ -561,15 +574,21 @@ int main() {
 		mark_non_recursiveness(p.second);
 	}
 
-	// auto cmd = buildTerm(split("ap :1117 x"));
-	// while (true) {
-	// 	cerr << cmd << "\n";
-	// 	expand_term_dicts(cmd);
-	// 	while (replaceAllRules(cmd)) {
-	// 		cerr << cmd << "\n";
-	// 	}
-	// 	break;
-	// }
+	/*auto cmd = buildTerm(split("ap ap galaxy nil pt"));
+	// auto cmd = buildTerm(split("ap ap :1141 ap ap cons 1 ap ap cons 2 nil 3"));
+	while (true) {
+		cerr << cmd << "\n";
+		expand_term_dicts(cmd);
+		while (replaceAllRules(cmd)) {
+			cerr << cmd << "\n";
+		}
+		expand_particular_node(cmd, ":1141");
+		while (replaceAllRules(cmd)) {
+			cerr << cmd << "\n";
+		}
+		cerr << cmd << "\n";
+		break;
+	}*/
 
 	/*for (auto [k, v] : term_dict) {
 		if (isList(v)) {

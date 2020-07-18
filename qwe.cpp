@@ -89,6 +89,9 @@ LI stoli(const string& s) {
 	}
 	LI res = 0;
 	for (int i = (sign == -1); i < (int)s.length(); ++i) {
+		if (!isdigit(s[i])) {
+			throw invalid_argument("qwe");
+		}
 		res = res * 10 + (s[i] - '0');
 	}
 	return res * sign;
@@ -343,6 +346,8 @@ bool replaceAllRules(Term*& term) {
 				} else if (keyterm == "isnil") {
 					if (vars["x"]->name == "nil") {
 						term = new Term("t");
+					} else if (vars["x"]->name.empty() && vars["x"]->left->name == "cons") {
+						term = new Term("f");
 					} else {
 						throw invalid_argument("qwe");
 					}
@@ -444,7 +449,22 @@ int main() {
 	// 	while (replaceAllRules(term_dict["galaxy"]));
 	// }
 
-	for (int it = 0; it < 10; ++it) {
+	used.clear();
+	for (auto& p : term_dict) {
+		mark_non_recursiveness(p.second);
+	}
+
+	auto cmd = buildTerm(split("ap :1117 x"));
+	while (true) {
+		cerr << cmd << "\n";
+		expand_term_dicts(cmd);
+		while (replaceAllRules(cmd)) {
+			cerr << cmd << "\n";
+		}
+		break;
+	}
+
+	/*for (int it = 0; it < 10; ++it) {
 		for (auto& [k, v] : term_dict) {
 			if (tree_size(v) < 100 && !contains_name(v, k)) {
 				for (auto& p : term_dict) {
@@ -491,16 +511,16 @@ int main() {
 	}
 	for (auto [k, v] : term_dict) {
 		cout << k << " = " << v << "\n";
-	}
+	}*/
 
 	/*{
-		cerr << term_dict[":1434"] << "\n";
-		expand_nonrec_term_dicts(term_dict[":1434"]);
-		cerr << term_dict[":1434"] << "\n";
-		while (replaceAllRules(term_dict[":1434"])) {
-			cerr << term_dict[":1434"] << "\n";
+		cerr << term_dict[":1117"] << "\n";
+		expand_nonrec_term_dicts(term_dict[":1117"]);
+		cerr << term_dict[":1117"] << "\n";
+		while (replaceAllRules(term_dict[":1117"])) {
+			cerr << term_dict[":1117"] << "\n";
 		}
-		write_svg(term_dict[":1434"], "out.svg");
+		write_svg(term_dict[":1117"], "out.svg");
 	}*/
 
 	// int times_changed = 0;

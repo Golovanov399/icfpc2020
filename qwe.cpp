@@ -443,12 +443,35 @@ bool replaceAllRules(Term*& term) {
 map<pair<int, int>, int> id_map;
 vector<Term*> term_by_id;
 
+Term* copy(Term* term) {
+	if (!term) {
+		return nullptr;
+	}
+	auto t = new Term(term->name);
+	t->is_non_recursive = term->is_non_recursive;
+	t->left = copy(term->left);
+	t->right = copy(term->right);
+	return t;
+}
+
+bool expand_left(Term*& term) {
+	if (term->name == "") {
+		if (!expand_left(term->left)) {
+		  return expand_left(term->right);
+    } else return true;
+	} else if (term_dict.count(term->name)) {
+		term = copy(term_dict[term->name]);
+    return true;
+	}
+  return false;
+}
+
 void expand_term_dicts(Term*& term) {
 	if (term->name == "") {
 		expand_term_dicts(term->left);
 		expand_term_dicts(term->right);
 	} else if (term_dict.count(term->name)) {
-		term = term_dict[term->name];
+		term = copy(term_dict[term->name]);
 	}
 }
 
@@ -466,19 +489,8 @@ void expand_particular_node(Term*& term, const string& name) {
 		expand_particular_node(term->left, name);
 		expand_particular_node(term->right, name);
 	} else if (term->name == name) {
-		term = term_dict[term->name];
+		term = copy(term_dict[term->name]);
 	}
-}
-
-Term* copy(Term* term) {
-	if (!term) {
-		return nullptr;
-	}
-	auto t = new Term(term->name);
-	t->is_non_recursive = term->is_non_recursive;
-	t->left = copy(term->left);
-	t->right = copy(term->right);
-	return t;
 }
 
 void expand_particular_node_with_ap(Term*& term, const string& name) {
@@ -574,7 +586,7 @@ int main() {
 		mark_non_recursiveness(p.second);
 	}
 
-	/*auto cmd = buildTerm(split("ap ap galaxy nil pt"));
+	auto cmd = buildTerm(split("ap ap galaxy nil ap ap cons 1 1"));
 	// auto cmd = buildTerm(split("ap ap :1141 ap ap cons 1 ap ap cons 2 nil 3"));
 	while (true) {
 		cerr << cmd << "\n";
@@ -582,13 +594,13 @@ int main() {
 		while (replaceAllRules(cmd)) {
 			cerr << cmd << "\n";
 		}
-		expand_particular_node(cmd, ":1141");
-		while (replaceAllRules(cmd)) {
-			cerr << cmd << "\n";
-		}
-		cerr << cmd << "\n";
+    for (int i = 0; i < 100000; ++i) {
+		  if (!expand_left(cmd)) break;
+		  while (replaceAllRules(cmd)) {}
+		  cerr << cmd << "\n";
+    }
 		break;
-	}*/
+	}
 
 	/*for (auto [k, v] : term_dict) {
 		if (isList(v)) {
@@ -622,7 +634,7 @@ int main() {
 		}
 	}*/
 
-	for (int it = 0; it < 5; ++it) {
+/*	for (int it = 0; it < 5; ++it) {
 		for (auto& [k, v] : term_dict) {
 			if (tree_size(v) < 100 && !contains_name(v, k)) {
 				for (auto& p : term_dict) {
@@ -669,7 +681,7 @@ int main() {
 	}
 	for (auto [k, v] : term_dict) {
 		cout << k << " = " << v << "\n";
-	}
+	}*/
 
 	/*{
 		cerr << term_dict[":1117"] << "\n";

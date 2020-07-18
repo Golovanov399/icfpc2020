@@ -596,7 +596,7 @@ int main() {
 		mark_non_recursiveness(p.second);
 	}
 
-	auto cmd = buildTerm(split("ap ap galaxy nil ap ap cons 1 1"));
+	auto cmd = buildTerm(split("ap ap galaxy nil ap ap cons 1 70101"));
 	// auto cmd = buildTerm(split("ap ap :1126 ap ap cons 0 ap ap cons 123 nil inc"));
 	while (true) {
 		// cerr << cmd << "\n";
@@ -610,16 +610,16 @@ int main() {
 		// 		write_svg(cmd, "out.svg");
 		// 	}
 		// }
-		cerr << cmd << "\n";
+//		cerr << cmd << "\n";
 		expand_term_dicts(cmd);
 		while (replaceAllRules(cmd)) {
-			cerr << cmd << "\n";
+//			cerr << cmd << "\n";
 		}
 		for (int i = 0; i < 100000; ++i) {
 			if (!expand_left(cmd)) break;
-			while (replaceAllRules(cmd)) {}
-			cerr << cmd << "\n";
+			if (i % 2 == 0) while (replaceAllRules(cmd)) {}
 		}
+		cerr << cmd << "\n";
 		break;
 	}
 

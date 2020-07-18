@@ -32,7 +32,7 @@ def modulate_int(n):
 	res += bin(n)[2:].rjust(4 * sz, '0')
 	return res
 
-def modulate(tokens):
+def modulate_tokens(tokens):
 	res = ""
 	i = 0
 	while i < len(tokens):
@@ -45,6 +45,20 @@ def modulate(tokens):
 		else:
 			res += modulate_int(int(tokens[i]))
 			i += 1
+	return res
+
+def modulate(a):
+	res = ""
+	if isinstance(a, list):
+		for x in a:
+			res += "11"
+			res += modulate(x)
+		res += "00"
+	elif isinstance(a, tuple):
+		assert len(a) == 2
+		res += "11" + modulate(a[0]) + modulate(a[1])
+	else:
+		res += modulate_int(int(a))
 	return res
 
 def repr(tokens):
@@ -61,4 +75,5 @@ def repr(tokens):
 
 a = input().strip().split()
 print(*repr(a), sep='\n')
-print(modulate(a))
+print(modulate(repr(a)[1]))
+# print(modulate(a))

@@ -126,8 +126,15 @@ const vector<string> untyped_rules = {
 	"ap cdr z = ap z f",
 };
 
+const vector<string> typed_rules = {
+	"ap neg x",
+	"ap ap add x y",
+	"ap ap mul x y",
+};
+
 vector<pair<vector<string>, vector<string>>> untyped_rules_tokens;
-void fill_untyped_rules_tokens() {
+vector<vector<string>> typed_rules_tokens;
+void fill_rules_tokens() {
 	for (auto s : untyped_rules) {
 		auto tkns = split(s);
 		untyped_rules_tokens.emplace_back();
@@ -140,6 +147,10 @@ void fill_untyped_rules_tokens() {
 				(fst ? untyped_rules_tokens.back().first : untyped_rules_tokens.back().second).push_back(t);
 			}
 		}
+	}
+	for (auto s : typed_rules) {
+		auto tkns = split(s);
+		typed_rules_tokens.push_back(tkns);
 	}
 }
 
@@ -238,6 +249,37 @@ bool replaceAllRules(Term*& term) {
 			res = true;
 		}
 	}
+	for (const auto& rule : typed_rules_tokens) {
+		int ptr = 0;
+		string keyterm = "";
+		for (auto s : rule) {
+			if (s != "ap") {
+				keyterm = s;
+				break;
+			}
+		}
+		if (doesRuleFit(rule, keyterm, ptr, term)) {
+			map<string, Term*> vars;
+			ptr = 0;
+			storeRuleVars(rule, ptr, term, vars);
+			try {
+				if (keyterm == "neg") {
+					term = new Term(to_string(-stoi(vars["x"]->name)));
+				} else if (keyterm == "add") {
+					term = new Term(to_string(stoi(vars["x"]->name) + stoi(vars["y"]->name)));
+				} else if (keyterm == "mul") {
+					term = new Term(to_string(stoi(vars["x"]->name) * stoi(vars["y"]->name)));
+				} else {
+					assert(false);
+				}
+				term->is_non_recursive = true;
+				res = true;
+			} catch (const invalid_argument&) {
+				//
+			}
+		}
+	}
+
 	return res;
 }
 
@@ -271,7 +313,7 @@ int main() {
 		tokens.erase(tokens.begin(), tokens.begin() + 2);
 		term_dict[lhs] = buildTerm(tokens);
 	}
-	fill_untyped_rules_tokens();
+	fill_rules_tokens();
 
 	for (auto& p : term_dict) {
 		mark_non_recursiveness(p.second);

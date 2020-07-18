@@ -27,6 +27,60 @@ struct Term {
 			is_non_recursive(false) {}
 };
 
+ostream& operator <<(ostream& ostr, const Term* term) {
+	if (term->name == "") {
+		ostr << "ap ";
+		ostr << term->left;
+		ostr << " ";
+		ostr << term->right;
+		return ostr;
+	} else {
+		return ostr << term->name;
+	}
+}
+
+void write_svg(Term* term, const string& filename) {
+	vector<pair<Term*, int>> stack_with_layers;
+	vector<vector<string>> names;
+	stack_with_layers.push_back({term, 0});
+	while (!stack_with_layers.empty()) {
+		auto [term, layer] = stack_with_layers.back();
+		stack_with_layers.pop_back();
+		if (layer >= (int)names.size()) {
+			names.emplace_back();
+		}
+		names[layer].push_back(term->name.empty() ? "ap" : term->name);
+		if (term->name.empty()) {
+			stack_with_layers.push_back({term->right, layer + 1});
+			stack_with_layers.push_back({term->left, layer + 1});
+		}
+	}
+	int n = names.size();
+	ld w = 50;
+	vector<int> cur(n);
+	stack_with_layers.push_back({term, 0});
+	vector<pt> pars = {{-1., -1.}};
+	SVG svg(filename);
+	while (!stack_with_layers.empty()) {
+		auto [term, layer] = stack_with_layers.back();
+		stack_with_layers.pop_back();
+		pt up = pars.back();
+		pars.pop_back();
+		pt center = {w * (cur[layer] + 0.5) / names[layer].size(), layer + 0.5};
+		svg.text({center.x - 0.1, center.y}, names[layer][cur[layer]]);
+		if (up.x > -0.5) {
+			svg.line(up, {center.x, center.y - 0.2});
+		}
+		if (term->name.empty()) {
+			stack_with_layers.push_back({term->right, layer + 1});
+			pars.push_back({w * (cur[layer] + 0.5) / names[layer].size(), center.y + 0.2});
+			stack_with_layers.push_back({term->left, layer + 1});
+			pars.push_back({w * (cur[layer] + 0.5) / names[layer].size(), center.y + 0.2});
+		}
+		++cur[layer];
+	}
+}
+
 vector<string> split(const string& s) {
 	vector<string> res = {""};
 	for (char c : s) {
@@ -89,7 +143,7 @@ void fill_untyped_rules_tokens() {
 	}
 }
 
-bool doesRuleFit(const vector<string>& rule, int& ptr, Term* term) {
+bool doesRuleFit(const vector<string>& rule, const string& keyterm, int& ptr, Term* term) {
 	if (!term) {
 		return false;
 	}
@@ -98,17 +152,20 @@ bool doesRuleFit(const vector<string>& rule, int& ptr, Term* term) {
 			return false;
 		}
 		++ptr;
-		if (!doesRuleFit(rule, ptr, term->left)) {
+		if (!doesRuleFit(rule, keyterm, ptr, term->left)) {
 			return false;
 		}
-		if (!doesRuleFit(rule, ptr, term->right)) {
+		if (!doesRuleFit(rule, keyterm, ptr, term->right)) {
 			return false;
 		}
 		return true;
-	} else {
-		if (term->name.empty()) {
+	} else if (rule[ptr] == keyterm) {
+		if (term->name != keyterm) {
 			return false;
 		}
+		++ptr;
+		return true;
+	} else {
 		++ptr;
 		return true;
 	}
@@ -154,6 +211,8 @@ void mark_non_recursiveness(Term*& term) {
 	}
 }
 
+map<string, Term*> term_dict;
+
 bool replaceAllRules(Term*& term) {
 	if (!term->name.empty()) {
 		return false;
@@ -163,7 +222,14 @@ bool replaceAllRules(Term*& term) {
 	res |= replaceAllRules(term->right);
 	for (const auto& [lhs, rhs] : untyped_rules_tokens) {
 		int ptr = 0;
-		if (doesRuleFit(lhs, ptr, term)) {
+		string keyterm = "";
+		for (auto s : lhs) {
+			if (s != "ap") {
+				keyterm = s;
+				break;
+			}
+		}
+		if (doesRuleFit(lhs, keyterm, ptr, term)) {
 			map<string, Term*> vars;
 			ptr = 0;
 			storeRuleVars(lhs, ptr, term, vars);
@@ -172,13 +238,11 @@ bool replaceAllRules(Term*& term) {
 			res = true;
 		}
 	}
-	return true;
+	return res;
 }
 
 map<pair<int, int>, int> id_map;
 vector<Term*> term_by_id;
-
-map<string, Term*> term_dict;
 
 void expand_term_dicts(Term*& term) {
 	if (term->name == "") {
@@ -195,60 +259,6 @@ void expand_nonrec_term_dicts(Term*& term) {
 		expand_nonrec_term_dicts(term->right);
 	} else if (term_dict.count(term->name) && term_dict[term->name]->is_non_recursive) {
 		term = term_dict[term->name];
-	}
-}
-
-ostream& operator <<(ostream& ostr, const Term* term) {
-	if (term->name == "") {
-		ostr << "ap ";
-		ostr << term->left;
-		ostr << " ";
-		ostr << term->right;
-		return ostr;
-	} else {
-		return ostr << term->name;
-	}
-}
-
-void write_svg(Term* term, const string& filename) {
-	vector<pair<Term*, int>> stack_with_layers;
-	vector<vector<string>> names;
-	stack_with_layers.push_back({term, 0});
-	while (!stack_with_layers.empty()) {
-		auto [term, layer] = stack_with_layers.back();
-		stack_with_layers.pop_back();
-		if (layer >= (int)names.size()) {
-			names.emplace_back();
-		}
-		names[layer].push_back(term->name.empty() ? "ap" : term->name);
-		if (term->name.empty()) {
-			stack_with_layers.push_back({term->right, layer + 1});
-			stack_with_layers.push_back({term->left, layer + 1});
-		}
-	}
-	int n = names.size();
-	ld w = 50;
-	vector<int> cur(n);
-	stack_with_layers.push_back({term, 0});
-	vector<pt> pars = {{-1., -1.}};
-	SVG svg(filename);
-	while (!stack_with_layers.empty()) {
-		auto [term, layer] = stack_with_layers.back();
-		stack_with_layers.pop_back();
-		pt up = pars.back();
-		pars.pop_back();
-		pt center = {w * (cur[layer] + 0.5) / names[layer].size(), layer + 0.5};
-		svg.text({center.x - 0.1, center.y}, names[layer][cur[layer]]);
-		if (up.x > -0.5) {
-			svg.line(up, {center.x, center.y - 0.2});
-		}
-		if (term->name.empty()) {
-			stack_with_layers.push_back({term->right, layer + 1});
-			pars.push_back({w * (cur[layer] + 0.5) / names[layer].size(), center.y + 0.2});
-			stack_with_layers.push_back({term->left, layer + 1});
-			pars.push_back({w * (cur[layer] + 0.5) / names[layer].size(), center.y + 0.2});
-		}
-		++cur[layer];
 	}
 }
 
@@ -271,9 +281,10 @@ int main() {
 		cerr << term_dict[":1096"] << "\n";
 		expand_nonrec_term_dicts(term_dict[":1096"]);
 		cerr << term_dict[":1096"] << "\n";
+		while (replaceAllRules(term_dict[":1096"])) {
+			cerr << term_dict[":1096"] << "\n";
+		}
 		write_svg(term_dict[":1096"], "out.svg");
-		replaceAllRules(term_dict[":1096"]);
-		cerr << term_dict[":1096"] << "\n";
 	}
 
 	// int times_changed = 0;

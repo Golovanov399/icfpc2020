@@ -38,6 +38,7 @@ def demodulate(s):
 	return eval(sp.check_output(["./destroy", "demodulate"], input=s.encode()).decode().strip())
 
 def talk(data):
+	print("[*] %s" % data)
 	resp = requests.post(
 			   "https://icfpc2020-api.testkontur.ru/aliens/send",
 			   params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"},
@@ -69,6 +70,19 @@ def shoot(id, target, x):
 
 def clone(id, stats):
 	return [3, id, list(stats)]
+
+def repr_ship_with_commands(swc):
+	sh, cm = swc
+	return ' ' * 12 + "ship: {\n" +\
+		' ' * 16 + "role: " + str(sh[0]) + "\n" +\
+		' ' * 16 + "id: " + str(sh[1]) + "\n" +\
+		' ' * 16 + "position: " + str(sh[2]) + "\n" +\
+		' ' * 16 + "velocity: " + str(sh[3]) + "\n" +\
+		' ' * 16 + "stats: " + str(sh[4]) + "\n" +\
+		' ' * 16 + "damage?: " + str(sh[5]) + "\n" +\
+		' ' * 16 + "max hp?: " + str(sh[6]) + "\n" +\
+		' ' * 16 + "isalive?: " + str(sh[7]) + "\n" +\
+		' ' * 12 + "}, commands: %s" % cm
 
 def main():
 	key = None
@@ -114,6 +128,8 @@ def main():
 					i += 1
 					cmds.append(clone(int(cmd[i]), list(map(int, cmd[i+1:i+5]))))
 					i += 5
+				else:
+					print("[ ] cannot understand you :/")
 			_, gamestage, staticgameinfo, gamestate = commands(key, cmds)
 		if gamestage is not None:
 			print("[:] gamestage = %s" % gamestage)
@@ -122,7 +138,7 @@ def main():
 				print("[:] gamestate = (\n        tick = %s,\n        x1 = %s,\n        ships_and_commands = [\n%s\n        ]\n    )" % (
 					gamestate[0],
 					gamestate[1],
-					",\n".join(map(lambda x: ' ' * 12 + str(x), gamestate[2])))
+					",\n".join(map(repr_ship_with_commands, gamestate[2])))
 				)
 
 main()

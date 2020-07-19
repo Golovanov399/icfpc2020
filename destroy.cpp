@@ -168,6 +168,8 @@ int main(int argc, char** argv) {
 		cout << term2data(eval(new Term(new Term(new Term("galaxy"), data2term(str2data(state))), data2term(str2data(point))))) << "\n";
 	} else if (mode == "eval") {
 		cout << term2data(eval(s)) << "\n";
+	} else if (mode == "reduce") {
+		cout << eval(s) << "\n";
 	} else if (mode == "modulate") {
 		cout << modulate(data2term(str2data(s))) << "\n";
 	} else if (mode == "demodulate") {

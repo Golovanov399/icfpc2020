@@ -1,5 +1,6 @@
 # import the pygame module, so you can use it
 import pygame
+import requests
 import os
 from math import *
 import subprocess as sp
@@ -93,7 +94,11 @@ def interact_galaxy(state, vec):
     return eval(open("galaxy_output.txt", "r").read())
 
 def send_bobs(content):
-    command = 'curl -X POST "https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=e8bdb469f76642ce9b510558e3d024d7" -H  "accept: */*" -H  "Content-Type: text/plain" -d "%s" | destroy demodulate > bobs.txt' % modulate(content)
+    r = requests.post("https://icfpc2020-api.testkontur.ru/aliens/send", params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}, data=modulate(content))        
+    print("bobs = %s" % r.text)
+    with open("cbobs.txt", "w") as f:
+        print(r.text, file=f)
+    command = 'echo %s | destroy demodulate > bobs.txt' % r.text
     os.system(command)
     return eval(open("bobs.txt", "r").read())
 

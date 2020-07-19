@@ -5,6 +5,7 @@ import os
 from math import *
 import subprocess as sp
 import requests
+import platform
 
 def color(i):
     return (int(255 * (1 + cos(i)) * 0.5), int(255 * (1 + cos(2 * i)) * 0.5), int(255 * (1 + cos(4 * i)) * 0.5))
@@ -181,19 +182,26 @@ def modulate(a):
     return res
 
 def interact_galaxy(state, vec):
-   return eval(sp.check_output(["./destroy", "galaxy"], input=("%s:%s" % (state, vec)).encode()).decode().strip())
-    # command = "echo " + str(state) + ':' + str(vec) + " | destroy galaxy > galaxy_output.txt"
-    # os.system(command)
-    # return eval(open("galaxy_output.txt", "r").read())
+    if platform.system() != "Windows":
+        return eval(sp.check_output(["./destroy", "galaxy"], input=("%s:%s" % (state, vec)).encode()).decode().strip())
+    else:
+        command = "echo " + str(state) + ':' + str(vec) + " | destroy galaxy > galaxy_output.txt"
+        os.system(command)
+        return eval(open("galaxy_output.txt", "r").read())
 
 def send_bobs(content):
-    return eval(sp.check_output(["./destroy", "demodulate"], input=(requests.post(
-            "https://icfpc2020-api.testkontur.ru/aliens/send",
-            params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"},
-            data=modulate(content)).text).encode()).decode().strip())
-    # command = 'curl -X POST "https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=e8bdb469f76642ce9b510558e3d024d7" -H  "accept: */*" -H  "Content-Type: text/plain" -d "%s" | destroy demodulate > bobs.txt' % modulate(content)
-    # os.system(command)
-    # return eval(open("bobs.txt", "r").read())
+    resp = requests.post(
+               "https://icfpc2020-api.testkontur.ru/aliens/send",
+               params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"},
+               data=modulate(content)).text
+    if platform.system() != "Windows":
+        return eval(sp.check_output(["./destroy", "demodulate"], input=resp.encode()).decode().strip())
+    else:
+        with open("temp_bobs.txt", "w") as f:
+            print(resp, file=f)
+        # command = 'curl -X POST "https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=e8bdb469f76642ce9b510558e3d024d7" -H  "accept: */*" -H  "Content-Type: text/plain" -d "%s" | destroy demodulate > bobs.txt' % modulate(content)
+        os.system("destroy demodulate < temp_bobs.txt > bobs.txt")
+        return eval(open("bobs.txt", "r").read())
 
 
 # define a main function

@@ -64,7 +64,7 @@ def play_and_click(state, pics):
         s.set_alpha(127)
         s.fill((200, 200, 200))
         screen.blit(s, (sc // 2, (H * sc - 30) // 2))
-        t = myfont.render(textinput, False, (0, 0, 0))
+        t = myfont.render(textinput + "|", False, (0, 0, 0))
         screen.blit(t, (sc // 2 + 5, (H * sc - 30) // 2))
     elif mode == "loading":
         l = min(len(locs), 3)

@@ -1,3 +1,2 @@
 #!/bin/sh
-cd build
-exec ./main "$@"
+python ./app/main.py "$@"

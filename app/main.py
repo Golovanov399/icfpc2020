@@ -109,7 +109,7 @@ def main():
             x, y = ship[2]
             def sign(x):
                 return -1 if x < 0 else 1 if x > 0 else 0
-            cmds.append(accelerate(ship[1], (sign(x), sign(y))))
+            cmds.append(accelerate(ship[1], (-sign(x), -sign(y))))
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
 if __name__ == '__main__':

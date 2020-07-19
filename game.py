@@ -61,7 +61,7 @@ def play_and_click(state, pics):
     global textinput
     global locs
     global chosen
-    if mode == "saving":
+    if mode == "saving" or mode == "custom":
         s = pygame.Surface(((W - 1) * sc, 30))
         s.set_alpha(127)
         s.fill((200, 200, 200))
@@ -95,8 +95,9 @@ def play_and_click(state, pics):
                 pygame.quit()
                 quit()
             elif event.type == pygame.KEYDOWN:
+                print(event)
                 if event.key == 8: # backspace
-                    if mode == "saving" and textinput:
+                    if mode in ["saving", "custom"] and textinput:
                         textinput = textinput[:-1]
                         return
                 if event.key == 284: # f3
@@ -128,11 +129,19 @@ def play_and_click(state, pics):
                     elif mode == "loading":
                         mode = "playing"
                         return "sp", eval(read_locs_line(chosen * 2 + 1))
+                    elif mode == "custom":
+                        mode = "playing"
+                        return "cs", eval(textinput)
                 elif event.key == 27: # esc
                     if mode != "playing":
                         mode = "playing"
                         return
-                elif event.unicode and event.unicode.isprintable() and mode == "saving":
+                elif event.key == 96: # tilde
+                    if mode == "playing":
+                        mode = "custom"
+                        textinput = ""
+                        return
+                elif event.unicode and event.unicode.isprintable() and mode in ["saving", "custom"]:
                     textinput += event.unicode
                     return
         if pygame.mouse.get_pressed()[0] == 1 and mode == "playing":
@@ -216,7 +225,7 @@ def main():
         vec = play_and_click(state, pics)
         while vec is None:
             vec = play_and_click(state, pics)
-        (flag, state, data) = interact_galaxy(state, vec) if vec[0] != "sp" else (0, vec[1][0], vec[1][1])
+        (flag, state, data) = (0, vec[1][0], vec[1][1]) if vec[0] == "sp" else interact_galaxy(vec[1], (228, 239)) if vec[0] == "cs" else interact_galaxy(state, vec)
         print(state)
         while flag == 1:
             print("send bobs " + str(data))

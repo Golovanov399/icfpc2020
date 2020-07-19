@@ -79,8 +79,8 @@ def repr_ship_with_commands(swc):
 		' ' * 16 + "position: " + str(sh[2]) + "\n" +\
 		' ' * 16 + "velocity: " + str(sh[3]) + "\n" +\
 		' ' * 16 + "stats: " + str(sh[4]) + "\n" +\
-		' ' * 16 + "damage?: " + str(sh[5]) + "\n" +\
-		' ' * 16 + "max hp?: " + str(sh[6]) + "\n" +\
+		' ' * 16 + "t: " + str(sh[5]) + "\n" +\
+		' ' * 16 + "max t?: " + str(sh[6]) + "\n" +\
 		' ' * 16 + "isalive?: " + str(sh[7]) + "\n" +\
 		' ' * 12 + "}, commands: %s" % cm
 

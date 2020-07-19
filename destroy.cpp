@@ -170,6 +170,8 @@ int main(int argc, char** argv) {
 		cout << term2data(eval(s)) << "\n";
 	} else if (mode == "reduce") {
 		cout << eval(s) << "\n";
+	} else if (mode == "apcons") {
+		cout << data2term(str2data(s)) << "\n";
 	} else if (mode == "modulate") {
 		cout << modulate(data2term(str2data(s))) << "\n";
 	} else if (mode == "demodulate") {

@@ -15,13 +15,13 @@ def play_and_click(pics):
         for (x, y) in pic:
             lx = min(lx, x)
             rx = max(rx, x)
-            ly = min(ly, -y)
-            ry = max(ry, -y)
+            ly = min(ly, y)
+            ry = max(ry, y)
     if lx > rx:
         lx = rx = ly = ry = 0
     W = rx - lx + 1
     H = ry - ly + 1
-    maxD = 600
+    maxD = 1000
     sc = max(1, maxD // max(W, H))
     screen = pygame.display.set_mode((W * sc, H * sc))
     screen.fill((0, 0, 0))
@@ -30,7 +30,7 @@ def play_and_click(pics):
             s = pygame.Surface((sc, sc))
             s.set_alpha(224)
             s.fill(color(i))
-            screen.blit(s, ((x - lx) * sc, (-y - ly) * sc))
+            screen.blit(s, ((x - lx) * sc, (y - ly) * sc))
     pygame.display.update()
      
     # main loop
@@ -41,7 +41,7 @@ def play_and_click(pics):
                 quit()
         if pygame.mouse.get_pressed()[0] == 1:
             (x, y) = pygame.mouse.get_pos()
-            return (x // sc + lx, -(y // sc + ly))
+            return (x // sc + lx, (y // sc + ly))
 #        pygame.clock.tick(15)
 
 def apapcons(a):
@@ -57,6 +57,7 @@ def apapcons(a):
 
 def interact_galaxy(state, vec):
     command = "echo " + str(state) + ':' + str(vec) + " | destroy galaxy > galaxy_output.txt"
+    print("Running galaxy")
     os.system(command)
     return eval(open("galaxy_output.txt", "r").read())
 
@@ -69,6 +70,7 @@ def main():
         vec = play_and_click(pics)
         (flag, nstate, data) = interact_galaxy(state, vec)
         state = nstate
+        print(state)
         if flag == 0:
             pics = data
         else:

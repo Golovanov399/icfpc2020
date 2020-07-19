@@ -154,13 +154,27 @@ Term* eval(const string& s) {
 	return eval(buildTerm(split(s)));
 }
 
-int main() {
+int main(int argc, char** argv) {
+	string mode = "eval";
+	if (argc > 1) {
+		mode = argv[1];
+	}
 	string s;
 	getline(cin, s);
-	// cout << term2data(eval(s)) << "\n";
-	cerr << str2data(s) << "\n";
-	// cerr << term2data(eval("ap ap galaxy ap ap cons 1 ap ap cons ap ap cons 1 nil ap ap cons 0 ap ap cons nil nil ap ap cons 14 88"))->get(2) << "\n";
-	// cerr << demodulate("11111010000110100011111101010100011111101100001101000111111011000101010001011111010001010100001111110100001101000011111010101000011111011000111010000111111010001101011111010000101011110110000101011110110001101011111010001101100001111101001100001111101100001011000011111011000100110000111111010001001100010111110100001011000111111010011000111111011000010110001100") << "\n";
+
+	if (mode == "galaxy") {
+		string state = s.substr(0, s.find(':'));
+		string point = s.substr(s.find(':') + 1);
+		cout << term2data(eval(new Term(new Term(new Term("galaxy"), data2term(str2data(state))), data2term(str2data(point))))) << "\n";
+	} else if (mode == "eval") {
+		cout << term2data(eval(s)) << "\n";
+	} else if (mode == "modulate") {
+		cout << modulate(data2term(str2data(s))) << "\n";
+	} else if (mode == "demodulate") {
+		cout << term2data(demodulate(s)) << "\n";
+	} else {
+		cerr << "weird mode\n";
+	}
 
 	return 0;
 }

@@ -89,7 +89,7 @@ Data* parse_str_2_data(const string& s, int l, int r, const vector<int>& opposit
 				cur->head = parse_str_2_data(s, i, opposite[i] + 1, opposite);
 				cur->tail = new Data({List, LI(0), nullptr, nullptr});
 				cur = cur->tail;
-				i = opposite[i] + 3;
+				i = opposite[i] + 2;
 			} else {
 				int j = i;
 				if (s[j] == '-') {
@@ -101,7 +101,7 @@ Data* parse_str_2_data(const string& s, int l, int r, const vector<int>& opposit
 				cur->head = parse_str_2_data(s, i, j, opposite);
 				cur->tail = new Data({List, LI(0), nullptr, nullptr});
 				cur = cur->tail;
-				i = j + 2;
+				i = j + 1;
 			}
 		}
 		return res;
@@ -118,7 +118,7 @@ Data* parse_str_2_data(const string& s, int l, int r, const vector<int>& opposit
 				j += 1;
 			}
 			res->head = parse_str_2_data(s, i, j, opposite);
-			i = j + 2;
+			i = j + 1;
 		}
 		{
 			int j = i;
@@ -129,7 +129,7 @@ Data* parse_str_2_data(const string& s, int l, int r, const vector<int>& opposit
 				j += 1;
 			}
 			res->tail = parse_str_2_data(s, i, j, opposite);
-			i = j + 2;
+			i = j + 1;
 		}
 		return res;
 	} else {
@@ -137,7 +137,16 @@ Data* parse_str_2_data(const string& s, int l, int r, const vector<int>& opposit
 	}
 }
 
-Data* str2data(const string& s) {
+Data* str2data(string s) {
+	{
+		string t;
+		for (char c : s) {
+			if (!isspace(c)) {
+				t += c;
+			}
+		}
+		s = t;
+	}
 	vector<int> opposite(s.length(), -1);
 	vector<int> st;
 	for (int i = 0; i < (int)s.length(); ++i) {

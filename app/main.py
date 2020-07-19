@@ -70,6 +70,18 @@ def dem(s, i = 0):
 def demodulate(s):
     return dem(s)[0]
 
+def accelerate(id, vec):
+    return [0, id, tuple(vec)]
+
+def detonate(id):
+    return [1, id]
+
+def shoot(id, target, x):
+    return [2, id, target, x]
+
+def clone(id, stats):
+    return [3, id, list(stats)]
+
 def main():
     server_url = sys.argv[1]
     player_key = sys.argv[2]
@@ -90,7 +102,15 @@ def main():
         flag, stage, staticInfo, gameState = state
         if stage == 2:
             break
-        state = demodulate(requests.post(url, data=modulate([4, int(player_key), []]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+        our_role = staticInfo[1]
+        our_ships = [x for x in gameState[2] if x[0][0] == our_role] if gameState else None
+        cmds = []
+        for ship, _ in our_ships:
+            x, y = ship[2]
+            def sign(x):
+                return -1 if x < 0 else 1 if x > 0 else 0
+            cmds.append(accelerate(ship[1], (sign(x), sign(y))))
+        state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
 if __name__ == '__main__':
     main()

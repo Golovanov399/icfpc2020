@@ -4,7 +4,7 @@
 
 2. Install `pygame` module: `pip3 install --user pygame`
 
-3. Run `python game.py` and enjoy.
+3. Run `python3 game.py` and enjoy.
 
 # Keymap
 

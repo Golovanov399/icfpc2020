@@ -93,7 +93,7 @@ def main():
     print(resp)
     state = demodulate(resp.text)
     print(state)
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [4, 4, 4, 4]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [254,0,16,1]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     while 1:
         print(state)

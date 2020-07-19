@@ -79,6 +79,80 @@ Data* term2data(Term* term) {
 	}
 }
 
+Data* parse_str_2_data(const string& s, int l, int r, const vector<int>& opposite) {
+	if (s[l] == '[') {
+		assert(s[r - 1] == ']');
+		Data* res = new Data({List, LI(0), nullptr, nullptr});
+		Data* cur = res;
+		for (int i = l + 1; i < r - 1;) {
+			if (opposite[i] != -1) {
+				cur->head = parse_str_2_data(s, i, opposite[i] + 1, opposite);
+				cur->tail = new Data({List, LI(0), nullptr, nullptr});
+				cur = cur->tail;
+				i = opposite[i] + 3;
+			} else {
+				int j = i;
+				if (s[j] == '-') {
+					++j;
+				}
+				while (isdigit(s[j])) {
+					j += 1;
+				}
+				cur->head = parse_str_2_data(s, i, j, opposite);
+				cur->tail = new Data({List, LI(0), nullptr, nullptr});
+				cur = cur->tail;
+				i = j + 2;
+			}
+		}
+		return res;
+	} else if (s[l] == '(') {
+		assert(s[r - 1] == ')');
+		Data* res = new Data({Point, LI(0), nullptr, nullptr});
+		int i = l + 1;
+		{
+			int j = i;
+			if (s[j] == '-') {
+				++j;
+			}
+			while (isdigit(s[j])) {
+				j += 1;
+			}
+			res->head = parse_str_2_data(s, i, j, opposite);
+			i = j + 2;
+		}
+		{
+			int j = i;
+			if (s[j] == '-') {
+				++j;
+			}
+			while (isdigit(s[j])) {
+				j += 1;
+			}
+			res->tail = parse_str_2_data(s, i, j, opposite);
+			i = j + 2;
+		}
+		return res;
+	} else {
+		return new Data({Num, stoli(s.substr(l, r - l)), nullptr, nullptr});
+	}
+}
+
+Data* str2data(const string& s) {
+	vector<int> opposite(s.length(), -1);
+	vector<int> st;
+	for (int i = 0; i < (int)s.length(); ++i) {
+		if (s[i] == '(' || s[i] == '[') {
+			st.push_back(i);
+		} else if (s[i] == ')' || s[i] == ']') {
+			opposite[i] = st.back();
+			opposite[st.back()] = i;
+			st.pop_back();
+		}
+	}
+	assert(st.empty());
+	return parse_str_2_data(s, 0, (int)s.length(), opposite);
+}
+
 Term* data2term(Data* data) {
 	if (data->type == Num) {
 		return new Term(to_string(data->val));
@@ -132,14 +206,18 @@ ostream& operator <<(ostream& ostr, Data* data) {
 		return ostr << to_string(data->val);
 	} else if (data->type == Point) {
 		return ostr << "(" << data->head << ", " << data->tail << ")";
-	} else if (!data->head) {
-		return ostr << "[]";
 	} else {
 		ostr << "[";
-		while (data->tail->head) {
-			ostr << data->head << ", ";
+		bool fp = true;
+		while (data->head) {
+			if (fp) {
+				fp = false;
+			} else {
+				ostr << ", ";
+			}
+			ostr << data->head;
 			data = data->tail;
 		}
-		return ostr << data->head << "]";
+		return ostr << "]";
 	}
 }

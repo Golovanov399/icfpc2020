@@ -110,7 +110,7 @@ def main():
             def sign(x):
                 return -1 if x < 0 else 1 if x > 0 else 0
             if abs(x) < 60 and abs(y) < 60:
-                cmds.append(accelerate(ship[1], (-sign(x), -sign(y))))
+                cmds.append(accelerate(ship[1], (-sign(x) if abs(x) >= abs(y) else 0, -sign(y) if abs(y) > abs(x) else 0)))
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
 if __name__ == '__main__':

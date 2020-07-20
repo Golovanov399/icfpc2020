@@ -259,6 +259,7 @@ def main():
                 if ship.stats.max_clones > 1:
                     cmds.append(clone(ship.id, ship.stats.split(2)))
 
+        print(cmds)
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
 if __name__ == '__main__':

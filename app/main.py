@@ -234,6 +234,8 @@ def main():
             burn = buf < 60
             powah = stats[1]
             dodge = our_role == 1 and buf >= 60
+            if stats[3] == 1:
+                noClone = 0
             if our_role == 1:
                 if not noClone and (ship[2], ship[3]) in stable:
                     cmds.append(clone(ship[1], [0, 0, 0, 1]))

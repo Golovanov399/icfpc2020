@@ -253,7 +253,7 @@ def next_sh(p, v):
         sh = sts[0]
         sts = sts[1:]
         if len(sts) == 0:
-            staySill = 10
+            stayStill = 20
     return sh
 
 def main():
@@ -269,7 +269,7 @@ def main():
     print(state)
     our_role = state[2][1]
     their_role = our_role ^ 1
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[94,80,8,1], [200,0,8,76]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[88,72,8,20], [200,0,8,76]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     noClone = 0
     global sts, stayStill
@@ -321,7 +321,7 @@ def main():
                 noClone = 1
             if len(sts) == 0 and noClone == 0:
                 cmds.append(clone(ship[1], [0, 0, 0, 1]))
-                noClone = 10
+                noClone = 50
             else:
                 if noClone > 0:
                     noClone -= 1

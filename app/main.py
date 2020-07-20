@@ -178,7 +178,7 @@ def steer_stable(p, v, dodge = 0):
     return st
 
 def main():
-    global stable
+    global stable, lstable
     for line in open("all_stable"):
         tokens = list(map(int, line.strip().split()))
         stable.add(((tokens[0], tokens[1]), (tokens[2], tokens[3])))
@@ -226,6 +226,9 @@ def main():
             burn = free_temp < 60
 
             dodge = our_role == 1 and not burn
+
+            if ship.stats.max_clones == 1:
+                noClone = 1
 
             if our_role == 1:
                 if not noClone and (ship.pos, ship.vel) in stable:

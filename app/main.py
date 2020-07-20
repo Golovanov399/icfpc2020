@@ -110,15 +110,17 @@ def vsum(p, q):
 
 def genGoodStates(R):
     global goodStates
+    gs = []
     p = (-R * R + R // 2, R * R + R // 2)
     v = (R, R)
     for i in range(2 * R):
         for j in range(4):
-            goodStates += [(p, v)]
+            gs += [(p, v)]
             p = rotate(p)
             v = rotate(v)
         v = vsum(v, gravity(p))
         p = vsum(p, v)
+    goodStates += [gs]
 
 def dist(a, b):
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
@@ -126,7 +128,7 @@ def dist(a, b):
 def dist2(a, b):
     return dist(a[0], b[0]) + dist(a[1], b[1])
 
-def steer(p, v, dodge = 0):
+def steer(orbi, p, v, dodge = 0):
     P = 10
 
     bsc = 1000000
@@ -138,7 +140,7 @@ def steer(p, v, dodge = 0):
             sc = 1000000
             nv = vsum(v, vsum(gravity(p), (dx, dy)))
             np = vsum(p, nv)
-            for w in goodStates:
+            for w in goodStates[orbi]:
                 res = dist2((np, nv), w) + P * max(abs(dx), abs(dy))
                 sc = min(sc, res)
             if sc < bsc:
@@ -147,6 +149,11 @@ def steer(p, v, dodge = 0):
     return st
 
 def main():
+    genGoodStates(6)
+    genGoodStates(8)
+    global goodStates
+    goodStates += [[((-x, y), (-vx, vy)) for ((x, y), (vx, vy)) in v] for v in goodStates]
+    print(len(goodStates))
 
     server_url = sys.argv[1]
     player_key = sys.argv[2]
@@ -160,9 +167,7 @@ def main():
     print(state)
     our_role = state[2][1]
     their_role = our_role ^ 1
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[30,96,8,1], [254,0,16,1]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
-    genGoodStates(6 + our_role * 2)
-    print(len(goodStates))
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[30,96,8,1], [248,0,16,4]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     while 1:
         print(state)
@@ -181,8 +186,13 @@ def main():
                 return -1 if x < 0 else 1 if x > 0 else 0
             if abs(x) < 60 and abs(y) < 60:
                 cmds.append(accelerate(ship[1], (-sign(x) if abs(x) >= abs(y) else 0, -sign(y) if abs(y) > abs(x) else 0))
+
+
         '''
-        for ship, _ in our_ships:
+#        for ship, _ in our_ships:
+        divide = len(our_ships) < 4
+        for i in range(len(our_ships)):
+            ship, _ = our_ships[i]
             stats = ship[4]
             buf = ship[6] - ship[5]
             powah = stats[1]
@@ -194,7 +204,10 @@ def main():
                 if D < 7000:
                     neigh = 1
             dodge = dodge and neigh
-            st = steer(ship[2], ship[3], dodge)
+            st = steer(i, ship[2], ship[3], dodge)
+
+            if divide:
+                cmds.append(clone(ship[1], [x // 2 for x in stats]))
             
             print(st)
             if st[0] or st[1]:

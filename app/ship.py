@@ -3,8 +3,11 @@ class Stats:
     def __init__(self, stats):
         self.energy = stats[0]
         self.laser = stats[1]
-        self.power = stats[2]
+        self.regen = stats[2]
         self.max_clones = stats[3]
+
+    def split(self, part):
+        return [self.energy // part, self.laser // part, self.regen // part, self.max_clones // part]
 
 
 class Ship:

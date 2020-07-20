@@ -217,7 +217,7 @@ def main():
         our_ships = [Ship(x[0]) for x in gameState[2] if x[0][0] == our_role] if gameState else None
         their_ships = [Ship(x[0]) for x in gameState[2] if x[0][0] == their_role] if gameState else None
 
-        their_ships.sort(key=lambda ship: ship.stats.energy)
+        their_ships.sort(key=lambda ship: ship.stats.energy + ship.stats.regen)
 
         divide = len(our_ships) < 4
         for ship in our_ships:

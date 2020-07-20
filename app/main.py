@@ -151,9 +151,11 @@ def steer(orbi, p, v, dodge = 0):
     return st
 
 stable = set()
+lstable = []
 
 def steer_stable(p, v, dodge = 0):
     P = 1
+    global lstable
 
     bsc = 1000000
     st = ()
@@ -164,7 +166,7 @@ def steer_stable(p, v, dodge = 0):
             sc = 1000000
             nv = vsum(v, vsum(gravity(p), (dx, dy)))
             np = vsum(p, nv)
-            for w in stable:
+            for w in lstable:
                 res = dist2((np, nv), w) + P * max(abs(dx), abs(dy))
                 sc = min(sc, res)
             if sc < bsc:
@@ -178,6 +180,7 @@ def main():
     for line in open("all_stable"):
         tokens = list(map(int, line.strip().split()))
         stable.add(((tokens[0], tokens[1]), (tokens[2], tokens[3])))
+    lstable = list(stable)
     
     global goodStates
     genGoodStates(6)
@@ -255,7 +258,7 @@ def main():
                         continue
                     kamehameha = min(powah, buf)
                     if kamehameha > powah // 2:
-                        cmds.append(shoot(ship[1], t, kamehamha))
+                        cmds.append(shoot(ship[1], t, kamehameha))
                         break
 
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)

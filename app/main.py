@@ -260,19 +260,8 @@ def main():
                         break
 
                 if (ship.pos, ship.vel) in stable and ship.stats.max_clones > 1:
-                    cmds.append(
-                        clone(
-                            ship.id,
-                            [
-                                0,
-                                ship.stats.laser // 2,
-                                ship.stats.regen // 2,
-                                1
-                            ]
-                        )
-                    )
-
-        print(cmds)
+                    cmds.append(clone(ship.id, [0, 10, 1, 1]))
+                    stable.remove((ship.pos, ship.vel))
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
 if __name__ == '__main__':

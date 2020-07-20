@@ -201,7 +201,7 @@ def main():
     print(state)
     our_role = state[2][1]
     their_role = our_role ^ 1
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[94,80,8,1], [252,0,8,50]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[91,80,8,4], [252,0,8,50]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     noClone = 0
     while 1:
@@ -255,6 +255,9 @@ def main():
                     if kamehameha > ship.stats.laser // 2:
                         cmds.append(shoot(ship.id, t, kamehameha))
                         break
+
+                if ship.stats.max_clones > 1:
+                    cmds.append(clone(ship.id, ship.stats.split(2)))
 
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 

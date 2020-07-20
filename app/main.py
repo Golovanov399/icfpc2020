@@ -304,7 +304,7 @@ def main():
             if stats[0] == 0:
                 for eship, _ in their_ships:
                     D = dist(eship[2], ship[2])
-                    if D <= 1:
+                    if D <= 2:
                         cnds.append(detonate(ship[1]))
                         break
                 continue

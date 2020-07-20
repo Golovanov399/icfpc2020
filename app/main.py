@@ -243,7 +243,7 @@ def main():
                 st = steer(0, ship.pos, ship.vel)
                 if st != (0, 0) and not burn:
                     cmds.append(accelerate(ship.id, st))
-                for eship, _ in their_ships:
+                for eship in their_ships:
                     t = vsum(vsum(eship.pos, eship.vel), gravity(eship.pos))
                     D = dist(ship.pos, t)
                     nD = dist(vsum(ship.pos, ship.vel), t)

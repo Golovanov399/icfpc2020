@@ -176,18 +176,87 @@ def steer_stable(p, v, dodge = 0):
     print(bsc, st)
     return st
 
-def main():
-    global stable, lstable
-    for line in open("all_stable"):
-        tokens = list(map(int, line.strip().split()))
-        stable.add(((tokens[0], tokens[1]), (tokens[2], tokens[3])))
-    lstable = list(stable)
-    
-    global goodStates
-    genGoodStates(6)
-    goodStates += [[((-x, y), (-vx, vy)) for ((x, y), (vx, vy)) in v] for v in goodStates]
-    print(len(goodStates))
+def posPenalty(p):
+    R = max(abs(p[0]), abs(p[1]))
+    return R <= 16 or R >= 128
 
+def stable(p, v):
+    p0 = p
+    v0 = v
+    lft = 100
+    while 1:
+        if posPenalty(p):
+            return False
+        v = vsum(v, gravity(p))
+        p = vsum(p, v)
+        if (p, v) == (p0, v0):
+            break
+        lft -= 1
+        if lft == 0:
+            break
+    if posPenalty(p):
+        return False
+    return (p, v) == (p0, v0)
+    
+sts = []
+stayStill = 0
+E0 = 0
+maxl = 5
+
+def sidetrack(p, v, E):
+#    print(p, v, E)
+    global sts, E0, maxl
+    if E != E0 and stable(p, v):
+        return 1
+    if posPenalty(p) or len(sts) > maxl:
+        return 0
+    for dx in range(-1, 2):
+        for dy in range(-1, 2):
+            np = p
+            nv = v
+            nv = vsum(nv, vsum(gravity(np), (dx, dy)))
+            np = vsum(np, nv)
+            if posPenalty(np):
+                continue
+            nE = E
+            if (dx, dy) != (0, 0):
+                nE -= 1
+            if nE < 0:
+                continue
+            sts += [(-dx, -dy)]
+            if sidetrack(np, nv, nE):
+                return 1
+            sts = sts[:-1]
+    return 0
+
+def optSideTrack(p, v):
+    global E0, sts
+    E0 = 1
+    while 1:
+        sts = []
+        if sidetrack(p, v, E0):
+            break
+        else:
+            print("Couldn't find with E0 = %d" % E0)
+        E0 += 1
+    print("Found new course with %d" % E0)
+
+def next_sh(p, v):
+    global sts, stayStill
+    sh = (0, 0)
+    if len(sts) == 0:
+        if stayStill:
+            --stayStill;
+        else:
+            optSideTrack(p, v)
+    if len(sts):
+        sh = sts[0]
+        sts = sts[1:]
+        if len(sts) == 0:
+            staySill = 10
+    return sh
+
+def main():
     server_url = sys.argv[1]
     player_key = sys.argv[2]
     print('ServerUrl: %s; PlayerKey: %s' % (server_url, player_key))
@@ -203,6 +272,8 @@ def main():
     state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[94,80,8,1], [200,0,8,76]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     noClone = 0
+    global sts, stayStill
+    sts = []
     while 1:
         print(state)
         if state[0] == 0:
@@ -228,30 +299,33 @@ def main():
         for i in range(len(our_ships)):
             ship, _ = our_ships[i]
             stats = ship[4]
+            if stats == [0, 0, 0, 0]:
+                continue
             if stats[0] == 0:
+                for eship, _ in their_ships:
+                    D = dist(eship[2], ship[2])
+                    if D <= 1:
+                        cnds.append(detonate(ship[1]))
+                        break
                 continue
             buf = ship[6] - ship[5]
             burn = buf < 60
             powah = stats[1]
             dodge = our_role == 1 and buf >= 60
+
+            sh = next_sh(ship[2], ship[3])
+            if sh != (0, 0):
+                cmds.append(accelerate(ship[1], sh))
+
             if stats[3] == 1:
                 noClone = 1
-            if our_role == 1:
-                if not noClone and (ship[2], ship[3]) in stable:
-                    cmds.append(clone(ship[1], [0, 0, 0, 1]))
-                    noClone = 1
-#                    if not burn:
-#                        cmds.append(accelerate(ship[1], (sgn(ship[2][1]), -sgn(ship[2][0]))))
-                else:
-                    st = steer_stable(ship[2], ship[3], 1)
-                    if st != (0, 0) and not burn:
-                        cmds.append(accelerate(ship[1], st))
-                        noClone = 0
-#                st = steer(i, ship[2], ship[3], dodge)
+            if len(sts) == 0 and noClone == 0:
+                cmds.append(clone(ship[1], [0, 0, 0, 1]))
+                noClone = 10
             else:
-                st = steer(0, ship[2], ship[3])
-                if st != (0, 0) and not burn:
-                    cmds.append(accelerate(ship[1], st))
+                if noClone > 0:
+                    noClone -= 1
+            if our_role == 0:
                 for eship, _ in their_ships:
                     t = vsum(vsum(eship[2], eship[3]), gravity(eship[2]))
                     D = dist(ship[2], t)

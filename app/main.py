@@ -196,7 +196,7 @@ def main():
             stats = ship[4]
             buf = ship[6] - ship[5]
             powah = stats[1]
-            dodge = our_role == 1 and buf >= 2
+            dodge = our_role == 1 and buf >= 60
             neigh = 0
             for eship, _ in their_ships:
                 t = vsum(vsum(eship[2], eship[3]), gravity(eship[2]))

@@ -89,11 +89,12 @@ def main():
 
     url = server_url + '/aliens/send'
 
-    resp = requests.post(url, data=modulate([2, int(player_key), []]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"})
+    resp = requests.post(url, data=modulate([2, int(player_key), [192496425430, 103652820]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"})
     print(resp)
     state = demodulate(resp.text)
     print(state)
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [254,0,16,1]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    params = [254, 0, 16, 1] if state[2][1] == 1 else [30, 96, 8, 1]
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), params]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     while 1:
         print(state)

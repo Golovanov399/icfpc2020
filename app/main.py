@@ -225,8 +225,6 @@ def main():
             free_temp = ship.max_temp - ship.temp
             burn = free_temp < 60
 
-            laser = ship.stats.laser
-
             dodge = our_role == 1 and not burn
 
             if our_role == 1:
@@ -248,8 +246,8 @@ def main():
                     nD = dist(vsum(ship.pos, ship.vel), t)
                     if D > 7000 or D > nD:
                         continue
-                    kamehameha = min(laser , free_temp)
-                    if kamehameha > laser // 2:
+                    kamehameha = min(ship.stats.laser , free_temp)
+                    if kamehameha > ship.stats.laser // 2:
                         cmds.append(shoot(ship.id, t, kamehameha))
                         break
 

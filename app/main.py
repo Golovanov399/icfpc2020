@@ -183,7 +183,7 @@ def posPenalty(p):
 def stable(p, v):
     p0 = p
     v0 = v
-    lft = 100
+    lft = 50
     while 1:
         if posPenalty(p):
             return False
@@ -253,7 +253,7 @@ def next_sh(p, v):
         sh = sts[0]
         sts = sts[1:]
         if len(sts) == 0:
-            stayStill = 20
+            stayStill = 25
     return sh
 
 def main():

@@ -201,7 +201,7 @@ def main():
     print(state)
     our_role = state[2][1]
     their_role = our_role ^ 1
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[91,80,8,2], [252,0,8,50]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[79,80,8,8], [252,0,8,50]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     noClone = 0
     while 1:
@@ -242,22 +242,35 @@ def main():
                         cmds.append(accelerate(ship[1], st))
                         noClone = 0
             else:
-                st = steer(0, ship.pos, ship.vel)
+                st = steer_stable(ship.pos, ship.vel, 1)
                 if st != (0, 0) and not burn:
                     cmds.append(accelerate(ship.id, st))
+
                 for eship in their_ships:
                     t = vsum(vsum(eship.pos, eship.vel), gravity(eship.pos))
                     D = dist(ship.pos, t)
                     nD = dist(vsum(ship.pos, ship.vel), t)
+
                     if D > 7000 or D > nD:
                         continue
+
                     kamehameha = min(ship.stats.laser , free_temp)
                     if kamehameha > ship.stats.laser // 2:
                         cmds.append(shoot(ship.id, t, kamehameha))
                         break
 
-                if ship.stats.max_clones > 1:
-                    cmds.append(clone(ship.id, ship.stats.split(2)))
+                if (ship.pos, ship.vel) in stable and ship.stats.max_clones > 1:
+                    cmds.append(
+                        clone(
+                            ship.id,
+                            [
+                                0,
+                                ship.stats.laser // 2,
+                                ship.stats.regen // 2,
+                                1
+                            ]
+                        )
+                    )
 
         print(cmds)
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)

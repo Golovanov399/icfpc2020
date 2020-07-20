@@ -218,8 +218,8 @@ def main():
         their_ships.sort(key=lambda ship: ship.stats.energy)
 
         divide = len(our_ships) < 4
-        for ship in range(our_ships):
-            if ship.stats[0] == 0:
+        for ship in our_ships:
+            if ship.stats.energy == 0:
                 continue
 
             free_temp = ship.max_temp - ship.temp

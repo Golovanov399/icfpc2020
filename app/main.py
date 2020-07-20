@@ -126,13 +126,15 @@ def dist(a, b):
 def dist2(a, b):
     return dist(a[0], b[0]) + dist(a[1], b[1])
 
-def steer(p, v):
+def steer(p, v, dodge = 0):
     P = 10
 
     bsc = 1000000
     st = ()
     for dx in range(-2, 3):
         for dy in range(-2, 3):
+            if dodge and (dx, dy) == (0, 0):
+                continue
             sc = 1000000
             nv = vsum(v, vsum(gravity(p), (dx, dy)))
             np = vsum(p, nv)
@@ -181,20 +183,28 @@ def main():
                 cmds.append(accelerate(ship[1], (-sign(x) if abs(x) >= abs(y) else 0, -sign(y) if abs(y) > abs(x) else 0))
         '''
         for ship, _ in our_ships:
-            st = steer(ship[2], ship[3])
             stats = ship[4]
             buf = ship[6] - ship[5]
             powah = stats[1]
+            dodge = our_role == 1 and 2 * buf < ship[6]
+            for eship, _ in their_ships:
+                t = vsum(vsum(eship[2], eship[3]), gravity(eship[2]))
+                D = dist(ship[2], t)
+                if D < 7000:
+                    neigh = 1
+            dodge = dodge and neigh
+            st = steer(ship[2], ship[3], dodge)
+            
             print(st)
             if st[0] or st[1]:
                 cmds.append(accelerate(ship[1], st))
             
             if our_role == 0:
                 for eship, _ in their_ships:
-                    t = vsum(eship[2], eship[3])
+                    t = vsum(vsum(eship[2], eship[3]), gravity(eship[2]))
                     D = dist(ship[2], t)
                     nD = dist(vsum(ship[2], ship[3]), t)
-                    if D > 5000 or D > nD:
+                    if D > 7000 or D > nD:
                         continue
                     kamehameha = min(powah, buf)
                     if kamehameha > powah // 2:

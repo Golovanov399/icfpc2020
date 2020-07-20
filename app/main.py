@@ -124,10 +124,10 @@ def dist(a, b):
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
 
 def dist2(a, b):
-    return dist(a[0], b[0]) + dist(a[1], b[1])
+    return dist(a[0], b[0]) + 10 * dist(a[1], b[1])
 
 def steer(p, v):
-    P = 10
+    P = 100
 
     bsc = 1000000
     st = ()
@@ -145,8 +145,6 @@ def steer(p, v):
     return st
 
 def main():
-    genGoodStates(8)
-    print(len(goodStates))
 
     server_url = sys.argv[1]
     player_key = sys.argv[2]
@@ -158,7 +156,11 @@ def main():
     print(resp)
     state = demodulate(resp.text)
     print(state)
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [254,0,16,1]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    our_role = state[2][1]
+    their_role = our_role ^ 1
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[30,96,8,1], [254,0,16,1]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    genGoodStates(6 + our_role * 2)
+    print(len(goodStates))
 
     while 1:
         print(state)
@@ -167,8 +169,8 @@ def main():
         flag, stage, staticInfo, gameState = state
         if stage == 2:
             break
-        our_role = staticInfo[1]
         our_ships = [x for x in gameState[2] if x[0][0] == our_role] if gameState else None
+        their_ships = [x for x in gameState[2] if x[0][0] == their_role] if gameState else None
         cmds = []
         '''
         for ship, _ in our_ships:
@@ -180,9 +182,25 @@ def main():
         '''
         for ship, _ in our_ships:
             st = steer(ship[2], ship[3])
+            stats = ship[4]
+            buf = ship[6] - ship[5]
+            powah = stats[1]
             print(st)
             if st[0] or st[1]:
                 cmds.append(accelerate(ship[1], st))
+            
+            if our_role == 0:
+                for eship, _ in their_ships:
+                    t = vsum(eship[2], eship[3])
+                    D = dist(ship[2], t)
+                    nD = dist(vsum(ship[2], ship[3]), t)
+                    if D > 5000 or D > nD:
+                        continue
+                    kamehameha = min(powah, buf)
+                    if kamehameha > powah // 2:
+                        cmds.append(shoot(ship[1], t, kamehameha))
+                        break
+
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
 if __name__ == '__main__':

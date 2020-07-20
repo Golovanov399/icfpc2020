@@ -212,6 +212,8 @@ def main():
         if stage == 2:
             break
 
+        cmds = []
+
         our_ships = [Ship(x[0]) for x in gameState[2] if x[0][0] == our_role] if gameState else None
         their_ships = [Ship(x[0]) for x in gameState[2] if x[0][0] == their_role] if gameState else None
 

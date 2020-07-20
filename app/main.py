@@ -1,6 +1,8 @@
 import requests
 import sys
 
+from ship import *
+
 def modulate_int(n):
     if n == 0:
         return "010"
@@ -181,7 +183,7 @@ def main():
         tokens = list(map(int, line.strip().split()))
         stable.add(((tokens[0], tokens[1]), (tokens[2], tokens[3])))
     lstable = list(stable)
-    
+
     global goodStates
     genGoodStates(6)
     goodStates += [[((-x, y), (-vx, vy)) for ((x, y), (vx, vy)) in v] for v in goodStates]
@@ -209,56 +211,46 @@ def main():
         flag, stage, staticInfo, gameState = state
         if stage == 2:
             break
-        our_ships = [x for x in gameState[2] if x[0][0] == our_role] if gameState else None
-        their_ships = [x for x in gameState[2] if x[0][0] == their_role] if gameState else None
-        cmds = []
-        '''
-        for ship, _ in our_ships:
-            x, y = ship[2]
-            def sign(x):
-                return -1 if x < 0 else 1 if x > 0 else 0
-            if abs(x) < 60 and abs(y) < 60:
-                cmds.append(accelerate(ship[1], (-sign(x) if abs(x) >= abs(y) else 0, -sign(y) if abs(y) > abs(x) else 0))
 
+        our_ships = [Ship(x[0]) for x in gameState[2] if x[0][0] == our_role] if gameState else None
+        their_ships = [Ship(x[0]) for x in gameState[2] if x[0][0] == their_role] if gameState else None
 
-        '''
-#        for ship, _ in our_ships:
+        their_ships.sort(key=lambda ship: ship.stats.energy)
+
         divide = len(our_ships) < 4
-        for i in range(len(our_ships)):
-            ship, _ = our_ships[i]
-            stats = ship[4]
-            if stats[0] == 0:
+        for ship in range(our_ships):
+            if ship.stats[0] == 0:
                 continue
-            buf = ship[6] - ship[5]
-            burn = buf < 60
-            powah = stats[1]
-            dodge = our_role == 1 and buf >= 60
-            params = (ship[2][0], ship[2][1], ship[3][0], ship[3][1])
+
+            free_temp = ship.max_temp - ship.temp
+            burn = free_temp < 60
+
+            laser = ship.stats.laser
+
+            dodge = our_role == 1 and not burn
+
             if our_role == 1:
-                if not noClone and (ship[2], ship[3]) in stable:
-                    cmds.append(clone(ship[1], [0, 0, 0, 1]))
+                if not noClone and (ship.pos, ship.vel) in stable:
+                    cmds.append(clone(ship.id, [0, 0, 0, 1]))
                     noClone = 1
-#                    if not burn:
-#                        cmds.append(accelerate(ship[1], (sgn(ship[2][1]), -sgn(ship[2][0]))))
                 else:
-                    st = steer_stable(ship[2], ship[3], 1)
+                    st = steer_stable(ship.pos, ship.vel, 1)
                     if st != (0, 0) and not burn:
                         cmds.append(accelerate(ship[1], st))
                         noClone = 0
-#                st = steer(i, ship[2], ship[3], dodge)
             else:
-                st = steer(0, ship[2], ship[3])
+                st = steer(0, ship.pos, ship.vel)
                 if st != (0, 0) and not burn:
-                    cmds.append(accelerate(ship[1], st))
+                    cmds.append(accelerate(ship.id, st))
                 for eship, _ in their_ships:
-                    t = vsum(vsum(eship[2], eship[3]), gravity(eship[2]))
-                    D = dist(ship[2], t)
-                    nD = dist(vsum(ship[2], ship[3]), t)
-                    if D > 7000 or D > nD:  
+                    t = vsum(vsum(eship.pos, eship.vel), gravity(eship.pos))
+                    D = dist(ship.pos, t)
+                    nD = dist(vsum(ship.pos, ship.vel), t)
+                    if D > 7000 or D > nD:
                         continue
-                    kamehameha = min(powah, buf)
-                    if kamehameha > powah // 2:
-                        cmds.append(shoot(ship[1], t, kamehameha))
+                    kamehameha = min(laser , free_temp)
+                    if kamehameha > laser // 2:
+                        cmds.append(shoot(ship.id, t, kamehameha))
                         break
 
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)

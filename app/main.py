@@ -180,6 +180,7 @@ def main():
         stable.add(((tokens[0], tokens[1]), (tokens[2], tokens[3])))
     
     global goodStates
+    genGoodStates(6)
     goodStates += [[((-x, y), (-vx, vy)) for ((x, y), (vx, vy)) in v] for v in goodStates]
     print(len(goodStates))
 
@@ -223,12 +224,12 @@ def main():
         for i in range(len(our_ships)):
             ship, _ = our_ships[i]
             stats = ship[4]
-            if stats == [0, 0, 0, 1]:
+            if stats[0] == 0:
                 continue
             buf = ship[6] - ship[5]
             burn = buf < 60
             powah = stats[1]
-            dodge = our_role == 1 and buf >= 2
+            dodge = our_role == 1 and buf >= 60
             params = (ship[2][0], ship[2][1], ship[3][0], ship[3][1])
             if our_role == 1:
                 if not noClone and (ship[2], ship[3]) in stable:
@@ -243,15 +244,18 @@ def main():
                         noClone = 0
 #                st = steer(i, ship[2], ship[3], dodge)
             else:
+                st = steer(0, ship[2], ship[3])
+                if st != (0, 0) and not burn:
+                    cmds.append(accelerate(ship[1], st))
                 for eship, _ in their_ships:
                     t = vsum(vsum(eship[2], eship[3]), gravity(eship[2]))
                     D = dist(ship[2], t)
                     nD = dist(vsum(ship[2], ship[3]), t)
-                    if D > 7000 or D > nD:
+                    if D > 7000 or D > nD:  
                         continue
                     kamehameha = min(powah, buf)
                     if kamehameha > powah // 2:
-                        cmds.append(shoot(ship[1], t, kamehameha))
+                        cmds.append(shoot(ship[1], t, kamehamha))
                         break
 
         state = demodulate(requests.post(url, data=modulate([4, int(player_key), cmds]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)

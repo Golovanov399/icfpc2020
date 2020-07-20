@@ -167,7 +167,7 @@ def main():
     print(state)
     our_role = state[2][1]
     their_role = our_role ^ 1
-    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[30,96,8,1], [248,0,16,4]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
+    state = demodulate(requests.post(url, data=modulate([3, int(player_key), [[30,96,8,1], [344,0,8,4]][our_role]]), params={"apiKey": "e8bdb469f76642ce9b510558e3d024d7"}).text)
 
     while 1:
         print(state)
@@ -196,7 +196,7 @@ def main():
             stats = ship[4]
             buf = ship[6] - ship[5]
             powah = stats[1]
-            dodge = our_role == 1
+            dodge = our_role == 1 and buf >= 2
             neigh = 0
             for eship, _ in their_ships:
                 t = vsum(vsum(eship[2], eship[3]), gravity(eship[2]))

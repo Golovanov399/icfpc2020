@@ -1,28 +1,28 @@
 Below is our write-up of the ICFP Contest 2020. I am Alexander Golovanov, I work at AIM Tech and also have a team MIPT Godnotent, so our team is called `AIM Tech + Godnotent`.
 
-#About one month before the contest
+# About one month before the contest
 
 One of my colleagues dropped an announcement about this year ICFPC edition in one of our working chats. I didn't take part in the previous editions, except for [2016](http://icfpc2016.blogspot.com/), when I spent a couple of hours solo doing some origami and visualizing some pictures of what I needed to to, so it actually doesn't count. My colleagues took part last several years, so they decided to participate this year also. However, a part of them went to a trip, and another part decided do decline because in the previous edition the rules changed drastically after lightning round and all the written code became useless. I intended to participate with my ICPC team + our coach, as we did, for example, in Google Hash Code.
 
-#Two weeks before the contest
+# Two weeks before the contest
 
 I found out that ICFPC twitter account had some retweets of Ivan Zaitsev, who asked to help him with deciphering some messages from space. At first I didn't know if it is true or just a story, but then the messages turned out to arrive at the specific time every day and define some operators by a grid-aligned signals, so it became clear that it's some sort of en entertaining fairytale.
 
 However, there were also posts [0](https://pegovka.space/#/post/0) and [1023](https://pegovka.space/#/post/1023) on [pegovka.space](https://pegovka.space). We tried to run some steganographic deciphers on the flowers pic, but didn't find anything interesting.
 
-#One week before the contest
+# One week before the contest
 
 My colleague Renat `renat` Gimadeev suggested to join our teams. My teammates voted for.
 
 We decided to write the contest mostly in our office -- that is, some of us are in a single meeting room, some of us are in Netherlands (and we are talking via zoom), and some other people join us when it's convenient for them. So far in total there were 13 of us who was going to participate. We have reserved a meeting room and ensured that my team could visit the office at any time without any problems with coming in.
 
-#One hour before the contest
+# One hour before the contest
 
 Our coach Mikhail `endagorion` Tikhomirov has arrived. We decided to use the remaining hour to read all the docs on the message from space. It turned out that there was a plenty of info since we last had a look. While we were dealing with the operators, the message about a huge incoming transmission appeared on [pegovka.space](https://pegovka.space). We were sure that it had something to do with the contest.
 
 More our colleagues joined us, and...
 
-#The contest begins
+# The contest begins
 
 ...nothing happened. No statements, nothing. Then encoded messages 16-42 appeared. Then the icfpc website said something like "we've prepared a contest, but it doesn't matter, because we are now talking with aliens, blah-blah-blah". So we divided into two groups: some of us started to decode the messages, and others began playing with the server, sending different queries and analyzing the responses.
 
@@ -43,7 +43,7 @@ During this process Konstantin `zemen` Semenov wrote some code which simplified 
 
 6 hours after the contest start, nobody seems to understand what is needed to be done. Also we decided to translate the galaxy file into haskell and run it, but didn't manage to deal with the recursion. We went to sleep, [very upset and demotivated](https://codeforces.com/blog/entry/80044). I mean what the hell, this seemed like a ctf or something, and we are not ctf guys. At least we were 4th in the lightning standings.
 
-#15 hours of the contest
+# 15 hours of the contest
 
 There appeared several videos on how to deal with the tree. I woke up and wrote a simple tree reduction algorithm like "if we can substitute one non-recursive term into other then do it and then try to beta-reduce". It decreased the number of lines, but the file size has grown. Also I wrote a tree drawer in svg to try to reduce something manually. Then added some typed reductions like `add 0 1 -> 1`. Didn't help a lot.
 
@@ -51,11 +51,11 @@ There appeared several videos on how to deal with the tree. I woke up and wrote 
 
 When I was doing this sort of things (adding more rules, fixing bugs, writing new ones), renat joined me and optimised the code a little. Also I found out that some terms occurrences may be shortened when a term is with an argument (so not just `:1234`, but `ap :1234 x`). Also some terms may be deciphered like this: thus, we found out (empirically) that `:1141` is `take`, `:1128` is `map`, `:1126` is `length` and so on.
 
-#24 hours of the contest
+# 24 hours of the contest
 
 We finished 7th in the lightning round. Only 3 teams made something reasonable. The prank went too far.
 
-#28 hours of the contest
+# 28 hours of the contest
 
 endagorion joined us. While I was doing the same stuff, renat and endagorion finally found out that `galaxy` is a term applying a list and a vector, and it turned out that our code reduction thing can handle this in several seconds -- that is, reduce `ap ap galaxy nil ap ap cons 0 0`. We drew the set of points [here](https://golovanov399.github.io/grid/rect_grid_draw.htm) to find out that it is a galaxy image and that we are on the right path.
 
@@ -69,11 +69,11 @@ I called this mode `destroy`. So anyone who wanted to evaluate the galaxy on som
 
 Meanwhile endagorion made a pygame clickable client drawing things. We started to play around. There was a galaxy with clickable locations. Some of them lead to nowhere, just showed some beings. Some of them lead to static pics we didn't manage to parse. Some of them were interactive.
 
-##Tic-tac-toe
+## Tic-tac-toe
 
 endagorion quickly realized the he needed to obtain a draw in as many ways as possible. Instead of writing an automated solution, he started to play by hands.
 
-##Weird 8x8 glyphs
+## Weird 8x8 glyphs
 
 I decided to play with the other game. There was a 8x8 board with glyphs which represented numbers in a known format. One could
 
@@ -95,7 +95,7 @@ Mikhail called them _achievements_ and I understood that indeed they were. I rea
 
 Then we found a tutorials section but barely understood it (however we found out that we can drive a ship or something, and modify its velocity, and it has some inertia, and there are a lot of numbers in its state, and it can be analyzed... tomorrow) and decided to go to sleep. It was at 6:00 am local time, that is, 34 hours before the contest ends.
 
-#26 hours before the end
+# 26 hours before the end
 
 At the evening I thought that it would be wonderful if we could save and load in some locations, moreover, it's easy to implement. So went to the caffee and did it while eating my breakfast (breakfast at 2:00 pm, yes). We then used it mainly to switch between the galaxy screen and the tutorials and multiplayer room.
 
@@ -123,7 +123,7 @@ After this (in some order) I wrote a cli for communicating with server and perfo
 
 I honestly do not remember when we found out all of this. Probably it was after we sent a dummy version of the strategy which did nothing (and gained us some rating). That is, during the third stage.
 
-#12 hours before the end
+# 12 hours before the end
 
 From this I felt very tired and did mainly analytic work -- that is, a little debugging, watching games, analyzing our weaknesses and suggesting something to implement, and Mikhail was writing the strategy. I pay respects. Truly a son of a long battle.
 
@@ -135,11 +135,11 @@ Also we wanted to use the attacker for shooting (there became more and more peop
 
 So then Mikhail implemented some flying -- he managed to use about 30 fuel to stand at a stable orbit -- that is which didn't require any velocity perturbations. We did it and then did some shooting in some moments -- I don't remember when. However, we still didn't know how the shooting damage is calculated.
 
-#8 hours before the end
+# 8 hours before the end
 
 Meanwhile we seemed to notice that the shooting damage in generally significantly greater when we hit the exact center of the ship. So we started to dodge sometimes. It costed us some fuel, but maybe we became more evasive and unpredictable.
 
-#6 hours before the end
+# 6 hours before the end
 
 My colleagues started to arrive at the office.
 
@@ -147,17 +147,17 @@ We did nothing essential. Changed some parameters. Added more if conditions on d
 
 Also we introduced cloning. We decided to clone as a defender into many `[0, 0, 0, 1]` pieces. endagorion made a unique stable orbit for each of them. Most of the times our enemy didn't succeed to shoot them out in time. Some guys, however, managed to do this (seems that they reverse-engineered the shooting). Some other guys made many attacker `[0, 0, 0, 1]`-clones and sent them to kamikaze the shit out of us. We didn't actually want to pay attention to this -- the strategy was very unpopular (despite the fact that one `[0, 0, 0, 1]` guy could make, I don't remember, maybe around 100 damage; well, a `[1, 0, 0, 1]` guy certainly could).
 
-#Last 4 hours
+# Last 4 hours
 
 Nothing major happened. Nikita `hippskill` Mikhaylov joined us and started to tweak some parameters in his own branch. Mikhail made orbits wider. Our attacker just patroled its orbit and was shooting quite rarely and when the distance was not very big. We started to encounter very weird bugs, such as falling to the sun in some of the spawn points. Afair, we fixed it.
 
 The final stage was frozen and we didn't do much. Mikhail chose the most stable version and choose it active. That's all I guess.
 
-#The answers
+# The answers
 
 Of course the shooting mechanics, as the gravity algorithm, were explained in non-interactive levels in the galaxy (I say _of course_ because I know this a posteriori). We decoded gravity quite easily (by downloading a bunch of logs using api and visualizing the gravity accelleration lengths). I don't want to spoil it here, though.
 
-#Conclusion and acknowledgements
+# Conclusion and acknowledgements
 
 After all this I can say that this was an extremely well organized contest which contained two separate parts -- the one with building the galaxy evaluator and the one with ships and stuff. It had some disadvantages, such as a very frustrating start when you don't know what to do and consequently why you should do it. It reminded me final editions of [Deadline 24](https://www.deadline24.pl/), except it's not 24 (and not 72 -- in our case it was around 20) and you start tired. In the end I think I like the setting.
 
@@ -169,7 +169,7 @@ And I'm grateful for everyone involved in the fact that Mikhail and I had consta
 
 My impressions are impossible to describe. Thank you all.
 
-#Photos
+# Photos
 
 ![](pics/07.jpg "Our whiteboard with some deciphered ship parameters")
 ![](pics/08.jpg "Easy rating")

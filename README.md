@@ -1,3 +1,5 @@
+**TL;DR our galaxy evaluator**: [here](https://github.com/Golovanov399/icfpc2020/tree/mega-pussy-destroyer), and `readme.md` is a manual.
+
 Below is our write-up of the ICFP Contest 2020. I am Alexander Golovanov, I work at AIM Tech and also have a team MIPT Godnotent, so our team is called `AIM Tech + Godnotent`.
 
 # About one month before the contest
